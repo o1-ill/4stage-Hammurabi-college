@@ -298,43 +298,47 @@
     });
 
     // عرض المجموعات
-    db.ref("students").on("value", snapshot => {
-      groupsContainer.innerHTML = "";
-      const data = snapshot.val() || {};
+  function renderGroups(data){
+  groupsContainer.innerHTML = "";
 
-      ["A1","A2","B1","B2"].forEach(g=>{
-        for(let i=1;i<=5;i++){
-          const sg = `Subgroup ${i}`;
-          const students = data[g] && data[g][sg] ? data[g][sg] : {};
-          const studentList = Object.entries(students);
+  ["A1","A2","B1","B2"].forEach(g=>{
+    for(let i=1;i<=5;i++){
+      const sg = `Subgroup ${i}`;
+      const students = data[g] && data[g][sg] ? data[g][sg] : {};
+      const studentList = Object.entries(students);
 
-          const card = document.createElement("div");
-          card.className="group-card";
-          card.innerHTML = `
-            <div class="group-header">${g} - ${sg}</div>
-            <div class="group-count">${studentList.length}/10</div>
+      const card = document.createElement("div");
+      card.className="group-card";
+      card.innerHTML = `
+        <div class="group-header">${g} - ${sg}</div>
+        <div class="group-count">${studentList.length}/10</div>
+      `;
+
+      if(studentList.length>0){
+        studentList.forEach(([id,st])=>{
+          const studentDiv=document.createElement("div");
+          studentDiv.className="student";
+          studentDiv.innerHTML=`
+            <span>${st.name}</span>
+            ${isAdmin 
+              ? `<button onclick="openActionDirect('${g}','${sg}','${id}')">⚙️</button>` 
+              : `<button onclick="openPasswordModal('${g}','${sg}','${id}')">✏️</button>`}
           `;
+          card.appendChild(studentDiv);
+        });
+      } else {
+        card.innerHTML+=`<div class="group-empty">لا يوجد طلاب بعد</div>`;
+      }
 
-          if(studentList.length>0){
-            studentList.forEach(([id,st])=>{
-              const studentDiv=document.createElement("div");
-              studentDiv.className="student";
-              studentDiv.innerHTML=`
-                <span>${st.name}</span>
-                ${isAdmin 
-  ? `<button onclick="openActionDirect('${g}','${sg}','${id}')">⚙️</button>` 
-  : `<button onclick="openPasswordModal('${g}','${sg}','${id}')">✏️</button>`}
-              `;
-              card.appendChild(studentDiv);
-            });
-          } else {
-            card.innerHTML+=`<div class="group-empty">لا يوجد طلاب بعد</div>`;
-          }
-
-          groupsContainer.appendChild(card);
-        }
-      });
-    });
+      groupsContainer.appendChild(card);
+    }
+  });
+}
+    // تحديث المجموعات مع أي تغيير بقاعدة البيانات
+db.ref("students").on("value", snapshot => {
+  const data = snapshot.val() || {};
+  renderGroups(data);
+});
 
     // فتح نافذة الرمز
     function openPasswordModal(group,subgroup,id){
@@ -396,15 +400,20 @@
     let isAdmin = false;
 
     function checkAdmin() {
-      const pass = document.getElementById("adminPass").value.trim();
-      if(pass === ADMIN_PASS){
-        isAdmin = true;
-        document.getElementById("adminPanel").style.display="block";
-        alert("✅ تم الدخول إلى وضع الإدارة");
-      } else {
-        alert("❌ رمز غير صحيح");
-      }
-    }
+  const pass = document.getElementById("adminPass").value.trim();
+  if(pass === ADMIN_PASS){
+    isAdmin = true;
+    document.getElementById("adminPanel").style.display="block";
+    alert("✅ تم الدخول إلى وضع الإدارة");
+    // إعادة تحميل البيانات لعرض أزرار الإدارة
+    db.ref("students").once("value").then(snapshot => {
+      const data = snapshot.val() || {};
+      renderGroups(data);
+    });
+  } else {
+    alert("❌ رمز غير صحيح");
+  }
+}
 
     // تصدير Excel
     function exportExcel() {
@@ -446,6 +455,7 @@
   </script>
 </body>
 </html>
+
 
 
 
