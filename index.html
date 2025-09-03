@@ -336,7 +336,16 @@ currentStudent = { group, subgroup, id: newRef.key };
 }
 
           studentDiv.innerHTML=`
-            <span>${st.name}</span>
+           <span>
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" 
+       fill="currentColor" viewBox="0 0 16 16" 
+       style="vertical-align:middle;margin-left:4px;">
+    <path d="M8 8a3 3 0 100-6 3 3 0 000 6zm4-3a4 4 0 11-8 0 4 4 0 018 0zM2 14s-1 0-1-1 
+             1-4 7-4 7 3 7 4-1 1-1 1H2z"/>
+  </svg>
+  ${st.name}
+</span>
+
             ${isAdmin 
               ? `<button onclick="openActionDirect('${g}','${sg}','${id}')">⚙️</button>` 
               : `<button onclick="openPasswordModal('${g}','${sg}','${id}')">✏️</button>`}
@@ -475,6 +484,7 @@ db.ref("students").on("value", snapshot => {
   </footer>
 </body>
 </html>
+
 
 
 
