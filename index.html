@@ -393,10 +393,17 @@
 
     function checkAdmin() {
   const pass = document.getElementById("adminPass").value.trim();
-  if(pass === ADMIN_PASS){
+  if (pass === ADMIN_PASS) {
     isAdmin = true;
-    document.getElementById("adminPanel").style.display="block";
+    document.getElementById("adminPanel").style.display = "block";
     alert("✅ تم الدخول إلى وضع الإدارة");
+
+    // ⬅️ إعادة بناء القوائم حتى تتحدث الأزرار ✏️
+    db.ref("students").once("value").then(snapshot => {
+      groupsContainer.innerHTML = "";
+      renderGroups(snapshot);
+    });
+
   } else {
     alert("❌ رمز غير صحيح");
   }
@@ -452,6 +459,7 @@ function openAdminAction(group, subgroup, id) {
   </footer>
 </body>
 </html>
+
 
 
 
