@@ -221,18 +221,39 @@
     }
 
     // دخول الإدارة
-    function checkAdmin() {
-      const pass = document.getElementById('adminPass').value;
-      if (pass === ADMIN_PASS) {
-        isAdmin = true;
-        adminPanel.style.display = "block";
-        document.getElementById("adminCol").style.display = "";
-        alert("✅ تم الدخول إلى وضع الإدارة");
-        db.ref('students').once('value'); // تحديث الجدول لإظهار الأزرار
-      } else {
-        alert("❌ رمز غير صحيح");
+function checkAdmin() {
+  const pass = document.getElementById('adminPass').value;
+  if (pass === ADMIN_PASS) {
+    isAdmin = true;
+    adminPanel.style.display = "block";
+    document.getElementById("adminCol").style.display = "";
+    alert("✅ تم الدخول إلى وضع الإدارة");
+
+    // 🔹 إعادة تحميل البيانات لتظهر أزرار الحذف
+    db.ref('students').once('value', snapshot => {
+      tableBody.innerHTML = "";
+      const data = snapshot.val() || {};
+      for (let g in data) {
+        for (let sg in data[g]) {
+          for (let id in data[g][sg]) {
+            const st = data[g][sg][id];
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${st.name}</td>
+              <td>${st.group}</td>
+              <td>${st.subgroup}</td>
+              ${isAdmin ? `<td><button class="delete-btn" onclick="deleteStudent('${g}','${sg}','${id}')">🗑 حذف</button></td>` : ""}
+            `;
+            tableBody.appendChild(row);
+          }
+        }
       }
-    }
+    });
+
+  } else {
+    alert("❌ رمز غير صحيح");
+  }
+}
 
     // تصدير Excel
     function exportExcel() {
@@ -274,3 +295,4 @@
   </script>
 </body>
 </html>
+
