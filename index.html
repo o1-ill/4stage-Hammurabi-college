@@ -115,6 +115,7 @@
           <th>Group</th>
           <th>Subgroup</th>
           <th class="admin-col">إجراءات</th>
+          <th id="adminCol" style="display:none;">إدارة</th>
         </tr>
       </thead>
       <tbody id="studentsTable"></tbody>
@@ -196,7 +197,7 @@ const firebaseConfig = {
               <td class="admin-col">
                 ${isAdmin ? `<button onclick="removeStudent('${group}','${subgroup}','${id}')">حذف</button>` : ""}
               </td>`;
-            tableBody.appendChild(tr);
+            tableBody.appendChild(row);
           }
         }
       }
@@ -215,6 +216,7 @@ const firebaseConfig = {
       if (pass === ADMIN_PASS) {
         isAdmin = true;
         adminPanel.style.display = "block";
+        document.getElementById("adminCol").style.display = "";
         alert("تم الدخول إلى وضع الإدارة");
         db.ref('students').once('value'); // لإعادة التحديث مع الأزرار
       } else {
@@ -259,7 +261,15 @@ const firebaseConfig = {
       };
       reader.readAsArrayBuffer(file);
     }
+    function deleteStudent(id) {
+  if (confirm("هل أنت متأكد من حذف هذا الطالب؟")) {
+    db.ref("students/" + id).remove()
+      .then(() => alert("✅ تم الحذف بنجاح"))
+      .catch(err => alert("❌ خطأ: " + err.message));
+  }
+}
   </script>
 </body>
 </html>
+
 
