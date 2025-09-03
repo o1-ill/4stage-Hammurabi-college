@@ -181,27 +181,26 @@ const firebaseConfig = {
     });
 
     // عرض البيانات
-    db.ref('students').on('value', (snapshot) => {
-      tableBody.innerHTML = "";
-      const data = snapshot.val();
-      if (!data) return;
-      for (let group in data) {
-        for (let subgroup in data[group]) {
-          for (let id in data[group][subgroup]) {
-            const student = data[group][subgroup][id];
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td>${student.name}</td>
-              <td>${student.group}</td>
-              <td>${student.subgroup}</td>
-              <td class="admin-col">
-                ${isAdmin ? `<button onclick="removeStudent('${group}','${subgroup}','${id}')">حذف</button>` : ""}
-              </td>`;
-            tableBody.appendChild(row);
-          }
-        }
-      }
-    });
+    db.ref("students").on("value", snapshot => {
+  tableBody.innerHTML = ""; // مسح الجدول قبل إعادة تعبئته
+  snapshot.forEach(child => {
+    const data = child.val();
+
+    // إنشاء صف جديد
+    const row = document.createElement("tr");
+
+    // محتويات الصف
+    row.innerHTML = `
+      <td>${data.name}</td>
+      <td>${data.group}</td>
+      <td>${data.subgroup}</td>
+      ${isAdmin ? `<td><button onclick="deleteStudent('${child.key}')">🗑 حذف</button></td>` : ""}
+    `;
+
+    // إضافة الصف للجدول
+    tableBody.appendChild(row);
+  });
+});
 
     // حذف طالب (للمدير)
     function removeStudent(group, subgroup, id) {
@@ -261,9 +260,13 @@ const firebaseConfig = {
       };
       reader.readAsArrayBuffer(file);
     }
-    function deleteStudent(id) {
+   // زر الحذف
+deleteStudent('${studentSnap.ref.path.pieces_.join("/")}')
+
+// دالة الحذف
+function deleteStudent(path) {
   if (confirm("هل أنت متأكد من حذف هذا الطالب؟")) {
-    db.ref("students/" + id).remove()
+    db.ref(path).remove()
       .then(() => alert("✅ تم الحذف بنجاح"))
       .catch(err => alert("❌ خطأ: " + err.message));
   }
@@ -271,5 +274,6 @@ const firebaseConfig = {
   </script>
 </body>
 </html>
+
 
 
