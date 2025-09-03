@@ -121,62 +121,37 @@
       <button type="submit">➕ إضافة</button>
     </form>
 
-    <!-- هنا رح تنعرض البطاقات -->
-    <div id="groupsContainer" class="groups-grid"></div>
-
-<style>
-  .groups-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 20px;
-    margin-top: 20px;
-  }
-  .group-card {
-    background: #fff;
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-  }
-  .group-card:hover {
-    transform: translateY(-5px);
-  }
-  .group-header {
-    font-weight: bold;
-    margin-bottom: 10px;
-  }
-  .group-count {
-    color: green;
-    font-weight: bold;
-  }
-  .group-empty {
-    color: #777;
-    font-size: 14px;
-    margin-top: 15px;
-  }
-</style>
-
-<script>
+    // عرض البطاقات
 function renderGroups(snapshot) {
   const container = document.getElementById("groupsContainer");
   container.innerHTML = "";
 
   const data = snapshot.val() || {};
+
+  // نمشي على كل Group (A1, A2, B1, B2)
   for (let g in data) {
     for (let sg in data[g]) {
-      const students = Object.values(data[g][sg]);
+      const studentsObj = data[g][sg];
+      const students = Object.entries(studentsObj); // [ [id, {name,group,subgroup}], ... ]
       const count = students.length;
 
       const card = document.createElement("div");
       card.classList.add("group-card");
 
+      // إذا العدد مكتمل 10 نغير اللون
+      const full = count >= 10 ? "style='color:red;'" : "";
+
+      // محتوى الكارت
       card.innerHTML = `
         <div class="group-header">${g} - ${sg}</div>
-        <div class="group-count">${count}/10</div>
+        <div class="group-count" ${full}>${count}/10</div>
         ${
           count > 0 
-          ? students.map(s => `<div>${s.name}</div>`).join("")
+          ? students.map(([id, s]) => `
+              <div>
+                ${s.name}
+                ${isAdmin ? `<button onclick="removeStudent('${g}','${sg}','${id}')">❌</button>` : ""}
+              </div>`).join("")
           : `<div class="group-empty">لا يوجد طلاب بعد</div>`
         }
       `;
@@ -188,8 +163,6 @@ function renderGroups(snapshot) {
 
 // تحديث تلقائي عند تغير البيانات
 db.ref("students").on("value", renderGroups);
-</script>
-
 
     <!-- دخول الإدارة -->
     <div style="margin-top:20px;">
@@ -352,5 +325,6 @@ function checkAdmin() {
   </script>
 </body>
 </html>
+
 
 
