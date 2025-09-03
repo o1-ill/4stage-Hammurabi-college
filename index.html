@@ -52,13 +52,12 @@
       border: 1px solid #ccc;
       border-radius: 8px;
     }
-   form {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 20px;
-}
-
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+    }
     input, select, button {
       padding: 10px;
       border: 1px solid #cbd5e1;
@@ -116,6 +115,19 @@
       border: 1px dashed #2563eb;
       border-radius: 10px;
     }
+    .edit-btn {
+      background: #f59e0b;
+      border: none;
+      color: white;
+      padding: 3px 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+    .edit-btn:hover {
+      background: #d97706;
+    }
   </style>
 </head>
 <body>
@@ -130,6 +142,7 @@
     <!-- form لإضافة اسم -->
     <form id="addForm">
       <input type="text" id="name" placeholder="الاسم الثلاثي" required>
+      <input type="password" id="studentPass" placeholder="الرمز السري" required>
       <select id="group" required>
         <option value="">اختر Group</option>
         <option>A1</option>
@@ -190,10 +203,11 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('name').value.trim();
+      const pass = document.getElementById('studentPass').value.trim();
       const group = document.getElementById('group').value;
       const subgroup = document.getElementById('subgroup').value;
 
-      if (!name) return;
+      if (!name || !pass) return;
 
       const ref = db.ref(`students/${group}/${subgroup}`);
       const snapshot = await ref.get();
@@ -205,7 +219,7 @@
         return;
       }
 
-      ref.push({ name, group, subgroup });
+      ref.push({ name, group, subgroup, pass });
       form.reset();
     });
 
@@ -238,6 +252,7 @@
             cardHTML += students.map(([id, st]) => `
               <div>
                 ${st.name}
+                <button class="edit-btn" onclick="editStudent('${g}','${sg}','${id}','${st.pass}')">✏️</button>
                 ${isAdmin ? `<button onclick="deleteStudent('${g}','${sg}','${id}')">🗑</button>` : ""}
               </div>
             `).join("");
@@ -254,7 +269,29 @@
 
     db.ref("students").on("value", renderGroups);
 
-    // حذف طالب
+    // تعديل أو حذف طالب برمزه الخاص
+    function editStudent(group, subgroup, id, correctPass) {
+      const enteredPass = prompt("أدخل الرمز السري الخاص بك:");
+      if (enteredPass === correctPass) {
+        const choice = confirm("هل تريد تعديل الاسم؟ (موافق = تعديل / إلغاء = حذف)");
+        if (choice) {
+          const newName = prompt("أدخل الاسم الجديد:");
+          if (newName) {
+            db.ref(`students/${group}/${subgroup}/${id}`).update({ name: newName });
+            alert("✅ تم تعديل الاسم");
+          }
+        } else {
+          if (confirm("هل تريد حذف اسمك نهائيًا؟")) {
+            db.ref(`students/${group}/${subgroup}/${id}`).remove();
+            alert("🗑 تم حذف الاسم");
+          }
+        }
+      } else {
+        alert("❌ الرمز غير صحيح");
+      }
+    }
+
+    // حذف طالب (للأدمن)
     function deleteStudent(group, subgroup, id) {
       if (confirm("هل تريد حذف هذا الطالب؟")) {
         db.ref(`students/${group}/${subgroup}/${id}`).remove();
@@ -311,14 +348,15 @@
       };
       reader.readAsArrayBuffer(file);
     }
-    </script>
+  </script>
 
   <!-- تذييل -->
   <footer style="text-align:center; margin:20px 0; color:#9ca3af; font-size:13px; font-style:italic; font-weight:300;">
-    Developed by <b>Ahmed Rasool  © 2025</b>
+    made by <b>Ahmed Rasool</b>
   </footer>
 </body>
 </html>
+
 
 
 
