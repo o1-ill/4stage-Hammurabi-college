@@ -121,18 +121,75 @@
       <button type="submit">➕ إضافة</button>
     </form>
 
-    <!-- جدول الأسماء -->
-    <table>
-      <thead>
-        <tr>
-          <th>الاسم</th>
-          <th>Group</th>
-          <th>Subgroup</th>
-          <th id="adminCol" style="display:none;">إجراءات</th>
-        </tr>
-      </thead>
-      <tbody id="studentsTable"></tbody>
-    </table>
+    <!-- هنا رح تنعرض البطاقات -->
+    <div id="groupsContainer" class="groups-grid"></div>
+
+<style>
+  .groups-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+  .group-card {
+    background: #fff;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+  }
+  .group-card:hover {
+    transform: translateY(-5px);
+  }
+  .group-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+  .group-count {
+    color: green;
+    font-weight: bold;
+  }
+  .group-empty {
+    color: #777;
+    font-size: 14px;
+    margin-top: 15px;
+  }
+</style>
+
+<script>
+function renderGroups(snapshot) {
+  const container = document.getElementById("groupsContainer");
+  container.innerHTML = "";
+
+  const data = snapshot.val() || {};
+  for (let g in data) {
+    for (let sg in data[g]) {
+      const students = Object.values(data[g][sg]);
+      const count = students.length;
+
+      const card = document.createElement("div");
+      card.classList.add("group-card");
+
+      card.innerHTML = `
+        <div class="group-header">${g} - ${sg}</div>
+        <div class="group-count">${count}/10</div>
+        ${
+          count > 0 
+          ? students.map(s => `<div>${s.name}</div>`).join("")
+          : `<div class="group-empty">لا يوجد طلاب بعد</div>`
+        }
+      `;
+
+      container.appendChild(card);
+    }
+  }
+}
+
+// تحديث تلقائي عند تغير البيانات
+db.ref("students").on("value", renderGroups);
+</script>
+
 
     <!-- دخول الإدارة -->
     <div style="margin-top:20px;">
@@ -295,4 +352,5 @@ function checkAdmin() {
   </script>
 </body>
 </html>
+
 
