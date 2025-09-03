@@ -153,6 +153,16 @@
     }
     .modal-box .cancel { background:#ef4444; }
     .modal-box .confirm { background:#2563eb; }
+    
+    /* ✨ أنميشن عند إضافة طالب جديد */
+@keyframes highlight {
+  0%   { background-color: #fde047; } /* أصفر */
+  100% { background-color: transparent; }
+}
+.student.new {
+  animation: highlight 2s ease-out;
+}
+
   </style>
 </head>
 <body>
@@ -293,8 +303,9 @@
         return;
       }
 
-      ref.push({ name, pass, group, subgroup });
-      form.reset();
+const newRef = ref.push({ name, pass, group, subgroup });
+currentStudent = { group, subgroup, id: newRef.key };
+
     });
 
     // عرض المجموعات
@@ -318,6 +329,12 @@
         studentList.forEach(([id,st])=>{
           const studentDiv=document.createElement("div");
           studentDiv.className="student";
+          
+          if (currentStudent && currentStudent.group === g && currentStudent.subgroup === sg && currentStudent.id === id) {
+  studentDiv.classList.add("new");
+  currentStudent = null; // عشان ما يظل يكرر اللمعة
+}
+
           studentDiv.innerHTML=`
             <span>${st.name}</span>
             ${isAdmin 
@@ -458,6 +475,7 @@ db.ref("students").on("value", snapshot => {
   </footer>
 </body>
 </html>
+
 
 
 
