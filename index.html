@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Cairo', sans-serif;
@@ -20,29 +21,30 @@
       padding: 20px;
       background: #2563eb;
       color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
     }
-    header i {
-      font-size: 28px;
-      animation: spin 6s linear infinite;
-    }
-    @keyframes spin {
-      100% { transform: rotate(360deg); }
-    }
+    h1 { margin: 0; font-size: 28px; }
     .container {
-      max-width: 900px;
+      max-width: 1200px;
       margin: 20px auto;
       background: white;
       padding: 20px;
       border-radius: 14px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+    img {
+      max-width: 100%;
+      display: block;
+      margin: 15px auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 20px;
+    }
     input, select, button {
-      width: 100%;
-      margin-bottom: 10px;
       padding: 10px;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
@@ -58,25 +60,33 @@
     button:hover { background: #1e40af; }
     .groups-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 20px;
       margin-top: 20px;
     }
     .group-card {
       background: #fff;
       border-radius: 15px;
-      padding: 15px;
+      padding: 20px;
       text-align: center;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
     }
+    .group-card:hover { transform: translateY(-5px); }
     .group-header {
       font-weight: bold;
       margin-bottom: 10px;
+      font-size: 16px;
     }
     .group-count {
       color: green;
       font-weight: bold;
       margin-bottom: 10px;
+    }
+    .group-empty {
+      color: #777;
+      font-size: 14px;
+      margin-top: 15px;
     }
     .student {
       display: flex;
@@ -94,7 +104,8 @@
       font-size: 16px;
       cursor: pointer;
     }
-    /* مودال عام */
+
+    /* --- Modals --- */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -140,82 +151,93 @@
       color: white;
       cursor: pointer;
     }
-    .modal-box .cancel { background: #ef4444; }
-    .modal-box .confirm { background: #2563eb; }
-    footer {
-      text-align: center;
-      margin-top: 20px;
-      font-size: 12px;
-      font-style: italic;
-      color: #94a3b8;
-    }
+    .modal-box .cancel { background:#ef4444; }
+    .modal-box .confirm { background:#2563eb; }
   </style>
 </head>
 <body>
   <header>
-    <i class="fa-solid fa-stethoscope"></i>
     <h1>تقسيم طلاب المرحلة الرابعة</h1>
   </header>
 
   <div class="container">
+    <img src="table.png" alt="جدول تقسيم المجموعات">
+
+    <!-- form لإضافة اسم -->
     <form id="addForm">
       <input type="text" id="name" placeholder="الاسم الثلاثي" required>
-      <input type="password" id="studentPass" placeholder="أدخل رمزك السري" required>
+      <input type="password" id="studentPass" placeholder="الرمز السري" required>
       <select id="group" required>
         <option value="">اختر Group</option>
-        <option>A1</option><option>A2</option>
-        <option>B1</option><option>B2</option>
+        <option>A1</option>
+        <option>A2</option>
+        <option>B1</option>
+        <option>B2</option>
       </select>
       <select id="subgroup" required>
         <option value="">اختر Subgroup</option>
-        <option>Subgroup 1</option><option>Subgroup 2</option>
-        <option>Subgroup 3</option><option>Subgroup 4</option>
+        <option>Subgroup 1</option>
+        <option>Subgroup 2</option>
+        <option>Subgroup 3</option>
+        <option>Subgroup 4</option>
         <option>Subgroup 5</option>
       </select>
       <button type="submit">إضافة</button>
     </form>
+
+    <!-- مكان عرض الكروبات -->
     <div id="groupsContainer" class="groups-grid"></div>
-  </div>
 
-  <!-- مودال: إدخال الرمز -->
-  <div id="passwordModal" class="modal-overlay">
-    <div class="modal-box">
-      <h3>أدخل الرمز السري</h3>
-      <input type="password" id="checkPassword" placeholder="رمزك السري">
-      <div class="actions">
-        <button class="cancel" onclick="closeModal('passwordModal')">إلغاء</button>
-        <button class="confirm" onclick="verifyPassword()">تأكيد</button>
+    <!-- نافذة إدخال الرمز -->
+    <div id="passwordModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3>أدخل الرمز السري</h3>
+        <input type="password" id="checkPassword" placeholder="رمزك السري">
+        <div class="actions">
+          <button class="cancel" onclick="closeModal('passwordModal')">إلغاء</button>
+          <button class="confirm" onclick="verifyPassword()">تأكيد</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- مودال: اختيار تعديل / حذف -->
-  <div id="actionModal" class="modal-overlay">
-    <div class="modal-box">
-      <h3>ماذا تريد أن تفعل؟</h3>
-      <div class="actions">
-        <button class="cancel" onclick="closeModal('actionModal')">إلغاء</button>
-        <button class="confirm" onclick="openEditModal()">✏️ تعديل</button>
-        <button class="cancel" onclick="deleteStudent()">🗑 حذف</button>
+    <!-- نافذة اختيار تعديل / حذف -->
+    <div id="actionModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3>اختر العملية</h3>
+        <div class="actions">
+          <button class="cancel" onclick="closeModal('actionModal')">إلغاء</button>
+          <button class="confirm" onclick="openEditModal()">✏️ تعديل</button>
+          <button class="cancel" onclick="openDeleteModal()">🗑 حذف</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- مودال: تعديل الاسم -->
-  <div id="editModal" class="modal-overlay">
-    <div class="modal-box">
-      <h3>تعديل الاسم</h3>
-      <input type="text" id="newName" placeholder="الاسم الجديد">
-      <div class="actions">
-        <button class="cancel" onclick="closeModal('editModal')">إلغاء</button>
-        <button class="confirm" onclick="updateName()">حفظ</button>
+    <!-- نافذة تعديل الاسم -->
+    <div id="editModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3>تعديل الاسم</h3>
+        <input type="text" id="newName" placeholder="الاسم الجديد">
+        <div class="actions">
+          <button class="cancel" onclick="closeModal('editModal')">إلغاء</button>
+          <button class="confirm" onclick="updateName()">حفظ</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <footer>made by Ahmed Rasool</footer>
+    <!-- نافذة تأكيد الحذف -->
+    <div id="deleteModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3>هل أنت متأكد من حذف الاسم؟</h3>
+        <div class="actions">
+          <button class="cancel" onclick="closeModal('deleteModal')">إلغاء</button>
+          <button class="confirm" style="background:#ef4444" onclick="deleteStudent()">تأكيد الحذف</button>
+        </div>
+      </div>
+    </div>
+  </div> <!-- نهاية container -->
 
   <script>
+    // إعدادات Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDv0bb_...",
       authDomain: "stage-c623f.firebaseapp.com",
@@ -226,6 +248,7 @@
       appId: "1:1078133694340:web:2028256dbfcc6d09547d1",
       measurementId: "G-ZY6YN2HZ5Z"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
@@ -233,84 +256,125 @@
     const groupsContainer = document.getElementById("groupsContainer");
     let currentStudent = null;
 
+    // فتح/إغلاق المودالات
+    function openModal(id){ document.getElementById(id).style.display="flex"; }
+    function closeModal(id){ document.getElementById(id).style.display="none"; }
+
+    // إضافة طالب جديد
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("name").value.trim();
+      const pass = document.getElementById("studentPass").value.trim();
       const group = document.getElementById("group").value;
       const subgroup = document.getElementById("subgroup").value;
-      const pass = document.getElementById("studentPass").value;
+
       if (!name || !pass) return;
 
       const ref = db.ref(`students/${group}/${subgroup}`);
       const snapshot = await ref.get();
-      if (Object.keys(snapshot.val() || {}).length >= 10) {
-        alert("هذا الـ Subgroup مكتمل (10 طلاب)");
+      const data = snapshot.val() || {};
+      const count = Object.keys(data).length;
+
+      if (count >= 10) {
+        alert("❌ هذا الـ Subgroup مكتمل (10 طلاب)");
         return;
       }
-      ref.push({ name, group, subgroup, pass });
+
+      ref.push({ name, pass, group, subgroup });
       form.reset();
     });
 
-    function renderGroups(snapshot) {
+    // عرض المجموعات
+    db.ref("students").on("value", snapshot => {
       groupsContainer.innerHTML = "";
       const data = snapshot.val() || {};
-      for (let g in data) {
-        for (let sg in data[g]) {
-          const students = Object.entries(data[g][sg]);
-          const count = students.length;
+
+      ["A1","A2","B1","B2"].forEach(g=>{
+        for(let i=1;i<=5;i++){
+          const sg = `Subgroup ${i}`;
+          const students = data[g] && data[g][sg] ? data[g][sg] : {};
+          const studentList = Object.entries(students);
+
           const card = document.createElement("div");
-          card.classList.add("group-card");
+          card.className="group-card";
           card.innerHTML = `
             <div class="group-header">${g} - ${sg}</div>
-            <div class="group-count">${count}/10</div>
-            <div>${count > 0 ? students.map(([id, st]) => `
-              <div class="student">
-                <span>${st.name}</span>
-                <button onclick="openPasswordModal('${g}','${sg}','${id}','${st.pass}')">✏️</button>
-              </div>
-            `).join("") : "<div class='group-empty'>لا يوجد طلاب بعد</div>"}</div>
+            <div class="group-count">${studentList.length}/10</div>
           `;
+
+          if(studentList.length>0){
+            studentList.forEach(([id,st])=>{
+              const studentDiv=document.createElement("div");
+              studentDiv.className="student";
+              studentDiv.innerHTML=`
+                <span>${st.name}</span>
+                <button onclick="openPasswordModal('${g}','${sg}','${id}')">✏️</button>
+              `;
+              card.appendChild(studentDiv);
+            });
+          } else {
+            card.innerHTML+=`<div class="group-empty">لا يوجد طلاب بعد</div>`;
+          }
+
           groupsContainer.appendChild(card);
         }
-      }
-    }
-    db.ref("students").on("value", renderGroups);
+      });
+    });
 
-    // فتح وإغلاق المودال
-    function openModal(id){ document.getElementById(id).style.display="flex"; }
-    function closeModal(id){ document.getElementById(id).style.display="none"; }
-
-    function openPasswordModal(group, subgroup, id, pass) {
-      currentStudent = { group, subgroup, id, pass };
+    // فتح نافذة الرمز
+    function openPasswordModal(group,subgroup,id){
+      currentStudent={group,subgroup,id};
+      document.getElementById("checkPassword").value = "";
       openModal("passwordModal");
     }
-    function verifyPassword() {
-      const inputPass = document.getElementById("checkPassword").value;
-      if (inputPass === currentStudent.pass) {
-        closeModal("passwordModal");
-        openModal("actionModal");
-      } else {
-        alert("❌ الرمز غير صحيح");
-      }
+
+    // تحقق من الرمز
+    function verifyPassword(){
+      const inputPass=document.getElementById("checkPassword").value.trim();
+      const {group,subgroup,id}=currentStudent;
+      db.ref(`students/${group}/${subgroup}/${id}`).once("value").then(snap=>{
+        const st=snap.val();
+        if(st && st.pass===inputPass){
+          closeModal("passwordModal");
+          openModal("actionModal");
+        } else {
+          alert("❌ رمز غير صحيح");
+        }
+      });
     }
-    function openEditModal() {
+
+    // فتح نافذة تعديل
+    function openEditModal(){
       closeModal("actionModal");
+      document.getElementById("newName").value = "";
       openModal("editModal");
     }
-    function updateName() {
-      const newName = document.getElementById("newName").value.trim();
-      if (newName) {
-        db.ref(`students/${currentStudent.group}/${currentStudent.subgroup}/${currentStudent.id}`).update({ name: newName });
-        closeModal("editModal");
-      }
+
+    // تحديث الاسم
+    function updateName(){
+      const newName=document.getElementById("newName").value.trim();
+      if(!newName) return;
+      const {group,subgroup,id}=currentStudent;
+      db.ref(`students/${group}/${subgroup}/${id}/name`).set(newName);
+      closeModal("editModal");
     }
-    function deleteStudent() {
-      db.ref(`students/${currentStudent.group}/${currentStudent.subgroup}/${currentStudent.id}`).remove();
+
+    // فتح نافذة الحذف
+    function openDeleteModal(){
       closeModal("actionModal");
+      openModal("deleteModal");
+    }
+
+    // حذف الطالب
+    function deleteStudent(){
+      const {group,subgroup,id}=currentStudent;
+      db.ref(`students/${group}/${subgroup}/${id}`).remove();
+      closeModal("deleteModal");
     }
   </script>
 </body>
 </html>
+
 
 
 
