@@ -8,6 +8,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: 'Cairo', sans-serif;
@@ -19,8 +20,20 @@
     header {
       text-align: center;
       padding: 20px;
-      background: #2563eb;
+      background: linear-gradient(90deg, #2563eb, #1e40af);
       color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+    header i {
+      font-size: 28px;
+      animation: spin 6s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
     h1 { margin: 0; font-size: 28px; }
     .container {
@@ -32,7 +45,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     img {
-      max-width: 100%;
+      max-width: 80%;
       display: block;
       margin: 15px auto;
       border: 1px solid #ccc;
@@ -58,6 +71,7 @@
       cursor: pointer;
     }
     button:hover { background: #1e40af; }
+
     .groups-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -459,6 +473,7 @@ function openAdminAction(group, subgroup, id) {
   </footer>
 </body>
 </html>
+
 
 
 
