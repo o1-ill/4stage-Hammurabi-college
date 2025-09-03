@@ -320,9 +320,11 @@
               const studentDiv=document.createElement("div");
               studentDiv.className="student";
               studentDiv.innerHTML=`
-                <span>${st.name}</span>
-                <button onclick="openPasswordModal('${g}','${sg}','${id}')">✏️</button>
-              `;
+  <span>${st.name}</span>
+  <button onclick="${isAdmin 
+    ? `openAdminAction('${g}','${sg}','${id}')` 
+    : `openPasswordModal('${g}','${sg}','${id}')`}">✏️</button>
+`;
               card.appendChild(studentDiv);
             });
           } else {
@@ -397,6 +399,11 @@
         alert("✅ تم الدخول إلى وضع الإدارة");
       } else {
         alert("❌ رمز غير صحيح");
+        // دالة خاصة بالمدير
+function openAdminAction(group, subgroup, id) {
+  currentStudent = { group, subgroup, id };
+  openModal("actionModal"); // يفتح نافذة الخيارات (تعديل / حذف)
+}
       }
     }
 
@@ -444,6 +451,7 @@
   </footer>
 </body>
 </html>
+
 
 
 
