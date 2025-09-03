@@ -8,7 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: 'Cairo', sans-serif;
@@ -20,20 +19,8 @@
     header {
       text-align: center;
       padding: 20px;
-      background: linear-gradient(90deg, #2563eb, #1e40af);
+      background: #2563eb;
       color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-    header i {
-      font-size: 28px;
-      animation: spin 6s linear infinite;
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
     }
     h1 { margin: 0; font-size: 28px; }
     .container {
@@ -45,7 +32,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     img {
-      max-width: 80%;
+      max-width: 100%;
       display: block;
       margin: 15px auto;
       border: 1px solid #ccc;
@@ -71,7 +58,6 @@
       cursor: pointer;
     }
     button:hover { background: #1e40af; }
-
     .groups-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -334,11 +320,9 @@
               const studentDiv=document.createElement("div");
               studentDiv.className="student";
               studentDiv.innerHTML=`
-  <span>${st.name}</span>
-  <button onclick="${isAdmin 
-    ? `openAdminAction('${g}','${sg}','${id}')` 
-    : `openPasswordModal('${g}','${sg}','${id}')`}">✏️</button>
-`;
+                <span>${st.name}</span>
+                <button onclick="openPasswordModal('${g}','${sg}','${id}')">✏️</button>
+              `;
               card.appendChild(studentDiv);
             });
           } else {
@@ -406,28 +390,15 @@
     let isAdmin = false;
 
     function checkAdmin() {
-  const pass = document.getElementById("adminPass").value.trim();
-  if (pass === ADMIN_PASS) {
-    isAdmin = true;
-    document.getElementById("adminPanel").style.display = "block";
-    alert("✅ تم الدخول إلى وضع الإدارة");
-
-    // ⬅️ إعادة بناء القوائم حتى تتحدث الأزرار ✏️
-    db.ref("students").once("value").then(snapshot => {
-      groupsContainer.innerHTML = "";
-      renderGroups(snapshot);
-    });
-
-  } else {
-    alert("❌ رمز غير صحيح");
-  }
-}
-
-// دالة خاصة بالمدير (خارج checkAdmin)
-function openAdminAction(group, subgroup, id) {
-  currentStudent = { group, subgroup, id };
-  openModal("actionModal"); // يفتح نافذة الخيارات (تعديل / حذف)
-}
+      const pass = document.getElementById("adminPass").value.trim();
+      if(pass === ADMIN_PASS){
+        isAdmin = true;
+        document.getElementById("adminPanel").style.display="block";
+        alert("✅ تم الدخول إلى وضع الإدارة");
+      } else {
+        alert("❌ رمز غير صحيح");
+      }
+    }
 
     // تصدير Excel
     function exportExcel() {
@@ -467,25 +438,8 @@ function openAdminAction(group, subgroup, id) {
       reader.readAsArrayBuffer(file);
     }
   </script>
-
-  <footer style="text-align:center; margin:20px 0; color:#9ca3af; font-size:13px; font-style:italic; font-weight:300;">
-    Developed by <b>Ahmed Rasool © 2025</b>
-  </footer>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
