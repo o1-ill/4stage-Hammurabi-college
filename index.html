@@ -33,6 +33,15 @@
       border-radius: 14px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+    .plan-img{
+      width:100%;
+      max-width:100%;
+      height:auto;
+      border:1px solid #e5e7eb;
+      border-radius:12px;
+      margin:12px 0 18px;
+      display:block;
+    }
     form {
       display: grid;
       grid-template-columns: 1fr 1fr 1fr auto;
@@ -70,9 +79,7 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       transition: transform 0.2s;
     }
-    .group-card:hover {
-      transform: translateY(-5px);
-    }
+    .group-card:hover { transform: translateY(-5px); }
     .group-header {
       font-weight: bold;
       margin-bottom: 10px;
@@ -110,7 +117,6 @@
       font-size: 12px;
     }
     .delete-btn:hover { background: #b91c1c; }
-
     .admin-panel {
       display: none;
       margin-top: 20px;
@@ -127,6 +133,9 @@
   </header>
   
   <div class="container">
+    <!-- صورة الجدول -->
+    <img src="table.png" alt="جدول تقسيم المجموعات" class="plan-img" onerror="this.style.display='none'">
+
     <!-- form لإضافة اسم -->
     <form id="addForm">
       <input type="text" id="name" placeholder="الاسم الثلاثي" required>
@@ -185,6 +194,7 @@
     const adminPanel = document.getElementById('adminPanel');
     const ADMIN_PASS = "qfvlu10178";
     let isAdmin = false;
+    let lastSnapshot = null;
 
     // إضافة طالب
     form.addEventListener('submit', async (e) => {
@@ -210,7 +220,7 @@
     });
 
     // عرض البطاقات
-    db.ref("students").on("value", snapshot => {
+    function renderGroups(snapshot) {
       groupsContainer.innerHTML = "";
       const data = snapshot.val() || {};
 
@@ -233,8 +243,7 @@
                   <li>
                     ${st.name}
                     ${isAdmin ? `<button class="delete-btn" onclick="deleteStudent('${g}','${sg}','${id}')">🗑</button>` : ""}
-                  </li>
-                `).join("")
+                  </li>`).join("")
                 : `<div class="group-empty">لا يوجد طلاب بعد</div>`
               }
             </ul>
@@ -242,6 +251,12 @@
           groupsContainer.appendChild(card);
         }
       });
+    }
+
+    // متابعة التحديثات
+    db.ref("students").on("value", snapshot => {
+      lastSnapshot = snapshot;
+      renderGroups(snapshot);
     });
 
     // حذف طالب
@@ -258,7 +273,7 @@
         isAdmin = true;
         adminPanel.style.display = "block";
         alert("✅ تم الدخول إلى وضع الإدارة");
-        db.ref('students').once('value'); // تحديث العرض لإظهار أزرار الحذف
+        if (lastSnapshot) renderGroups(lastSnapshot);
       } else {
         alert("❌ رمز غير صحيح");
       }
