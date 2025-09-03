@@ -114,8 +114,7 @@
           <th>الاسم</th>
           <th>Group</th>
           <th>Subgroup</th>
-          <th class="admin-col">إجراءات</th>
-          <th id="adminCol" style="display:none;">إدارة</th>
+          <th id="adminCol" style="display:none;">إجراءات</th>
         </tr>
       </thead>
       <tbody id="studentsTable"></tbody>
@@ -137,16 +136,16 @@
 
   <script>
     // إعدادات Firebase - ضع معلومات مشروعك هنا
-const firebaseConfig = {
-  apiKey: "AIzaSyDv0bb_...",   // 👈 انسخ القيمة من Firebase
-  authDomain: "stage-c623f.firebaseapp.com",
-  databaseURL: "https://stage-c623f-default-rtdb.firebaseio.com",
-  projectId: "stage-c623f",
-  storageBucket: "stage-c623f.appspot.com",
-  messagingSenderId: "1078133694340",
-  appId: "1:1078133694340:web:2028256dbfcc6d09547d1",
-  measurementId: "G-ZY6YN2HZ5Z"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyDv0bb_...",   // 👈 انسخ القيمة من Firebase
+      authDomain: "stage-c623f.firebaseapp.com",
+      databaseURL: "https://stage-c623f-default-rtdb.firebaseio.com",
+      projectId: "stage-c623f",
+      storageBucket: "stage-c623f.appspot.com",
+      messagingSenderId: "1078133694340",
+      appId: "1:1078133694340:web:2028256dbfcc6d09547d1",
+      measurementId: "G-ZY6YN2HZ5Z"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
@@ -154,7 +153,7 @@ const firebaseConfig = {
     const form = document.getElementById('addForm');
     const tableBody = document.getElementById('studentsTable');
     const adminPanel = document.getElementById('adminPanel');
-    const ADMIN_PASS = "qfvlu10178";
+    const ADMIN_PASS = "qfvlu10178"; // كلمة السر للإدارة
     let isAdmin = false;
 
     // إضافة اسم
@@ -182,30 +181,33 @@ const firebaseConfig = {
 
     // عرض البيانات
     db.ref("students").on("value", snapshot => {
-  tableBody.innerHTML = ""; // مسح الجدول قبل إعادة تعبئته
-  snapshot.forEach(child => {
-    const data = child.val();
+      tableBody.innerHTML = ""; // مسح الجدول
 
-    // إنشاء صف جديد
-    const row = document.createElement("tr");
+      snapshot.forEach(groupSnap => {
+        groupSnap.forEach(subgroupSnap => {
+          subgroupSnap.forEach(studentSnap => {
+            const student = studentSnap.val();
+            const path = studentSnap.ref.path.pieces_.join("/"); // المسار الكامل للطالب
 
-    // محتويات الصف
-    row.innerHTML = `
-      <td>${data.name}</td>
-      <td>${data.group}</td>
-      <td>${data.subgroup}</td>
-      ${isAdmin ? `<td><button onclick="deleteStudent('${child.key}')">🗑 حذف</button></td>` : ""}
-    `;
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${student.name}</td>
+              <td>${student.group}</td>
+              <td>${student.subgroup}</td>
+              ${isAdmin ? `<td><button onclick="deleteStudent('${path}')">🗑 حذف</button></td>` : ""}
+            `;
+            tableBody.appendChild(row);
+          });
+        });
+      });
+    });
 
-    // إضافة الصف للجدول
-    tableBody.appendChild(row);
-  });
-});
-
-    // حذف طالب (للمدير)
-    function removeStudent(group, subgroup, id) {
-      if (confirm("هل تريد حذف هذا الطالب؟")) {
-        db.ref(`students/${group}/${subgroup}/${id}`).remove();
+    // دالة الحذف
+    function deleteStudent(path) {
+      if (confirm("هل أنت متأكد من حذف هذا الطالب؟")) {
+        db.ref(path).remove()
+          .then(() => alert("✅ تم الحذف بنجاح"))
+          .catch(err => alert("❌ خطأ: " + err.message));
       }
     }
 
@@ -217,7 +219,6 @@ const firebaseConfig = {
         adminPanel.style.display = "block";
         document.getElementById("adminCol").style.display = "";
         alert("تم الدخول إلى وضع الإدارة");
-        db.ref('students').once('value'); // لإعادة التحديث مع الأزرار
       } else {
         alert("رمز غير صحيح");
       }
@@ -260,20 +261,6 @@ const firebaseConfig = {
       };
       reader.readAsArrayBuffer(file);
     }
-   // زر الحذف
-deleteStudent('${studentSnap.ref.path.pieces_.join("/")}')
-
-// دالة الحذف
-function deleteStudent(path) {
-  if (confirm("هل أنت متأكد من حذف هذا الطالب؟")) {
-    db.ref(path).remove()
-      .then(() => alert("✅ تم الحذف بنجاح"))
-      .catch(err => alert("❌ خطأ: " + err.message));
-  }
-}
   </script>
 </body>
 </html>
-
-
-
