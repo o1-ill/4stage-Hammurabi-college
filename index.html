@@ -154,8 +154,7 @@
     .modal-box .cancel { background:#ef4444; }
     .modal-box .confirm { background:#2563eb; }
     
-    /* ✨ أنميشن عند إضافة طالب جديد */
-@keyframes highlight {
+    @keyframes highlight {
   0%   { background-color: #fde047; } /* أصفر */
   100% { background-color: transparent; }
 }
@@ -293,7 +292,9 @@
 
       if (!name) return;
 
-      const ref = db.ref(`students/${group}/${subgroup}`);
+      const newRef = ref.push({ name, pass, group, subgroup });
+currentStudent = { group, subgroup, id: newRef.key };
+
       const snapshot = await ref.get();
       const data = snapshot.val() || {};
       const count = Object.keys(data).length;
@@ -485,6 +486,7 @@ db.ref("students").on("value", snapshot => {
   </footer>
 </body>
 </html>
+
 
 
 
