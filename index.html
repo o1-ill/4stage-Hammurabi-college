@@ -8,7 +8,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body {
       font-family: 'Cairo', sans-serif;
@@ -20,20 +19,8 @@
     header {
       text-align: center;
       padding: 20px;
-      background: linear-gradient(90deg, #2563eb, #1e40af);
+      background: #2563eb;
       color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-    }
-    header i {
-      font-size: 28px;
-      animation: spin 6s linear infinite;
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
     }
     h1 { margin: 0; font-size: 28px; }
     .container {
@@ -45,7 +32,7 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     img {
-      max-width: 80%;
+      max-width: 100%;
       display: block;
       margin: 15px auto;
       border: 1px solid #ccc;
@@ -71,8 +58,6 @@
       cursor: pointer;
     }
     button:hover { background: #1e40af; }
-
-    /* شبكة المجموعات */
     .groups-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -87,9 +72,7 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       transition: transform 0.2s;
     }
-    .group-card:hover {
-      transform: translateY(-5px);
-    }
+    .group-card:hover { transform: translateY(-5px); }
     .group-header {
       font-weight: bold;
       margin-bottom: 10px;
@@ -105,83 +88,78 @@
       font-size: 14px;
       margin-top: 15px;
     }
-
-    .admin-panel {
-      display: none;
-      margin-top: 20px;
-      padding: 15px;
-      background: #f8fafc;
-      border: 1px dashed #2563eb;
-      border-radius: 10px;
+    .student {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 5px 0;
+      padding: 5px 10px;
+      background: #f1f5f9;
+      border-radius: 8px;
     }
-    .edit-btn {
-      background: #f59e0b;
+    .student button {
+      background: transparent;
       border: none;
-      color: white;
-      padding: 3px 6px;
-      border-radius: 6px;
+      color: #2563eb;
+      font-size: 16px;
       cursor: pointer;
-      font-size: 12px;
-      margin-left: 5px;
-    }
-    .edit-btn:hover {
-      background: #d97706;
     }
 
-    /* نافذة منبثقة */
-    #customModal {
-      display:none;
-      position:fixed;
-      top:0; left:0;
-      width:100%; height:100%;
-      background:rgba(0,0,0,0.5);
-      justify-content:center;
-      align-items:center;
-      z-index:1000;
+    /* --- Modals --- */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
     }
-    #customModal .modal-box {
-      background:white;
-      padding:20px;
-      border-radius:12px;
-      width:320px;
-      text-align:center;
-      font-family:Cairo;
+    .modal-box {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      width: 320px;
+      text-align: center;
+      font-family: Cairo;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
-    #customModal h3 {
-      margin-bottom:15px;
-      color:#1e293b;
-      font-size:18px;
+    .modal-box h3 {
+      margin-bottom: 15px;
+      color: #1e293b;
+      font-size: 18px;
     }
-    #customModal input {
-      width:90%;
-      padding:8px;
-      border:1px solid #ccc;
-      border-radius:8px;
-      margin-bottom:15px;
+    .modal-box input {
+      width: 90%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 15px;
     }
-    #customModal .actions {
-      display:flex;
-      justify-content:space-between;
+    .modal-box .actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
     }
-    #customModal button {
-      flex:1;
-      margin:0 5px;
-      padding:8px;
-      border:none;
-      border-radius:8px;
-      color:white;
-      cursor:pointer;
+    .modal-box button {
+      flex: 1;
+      margin: 0 5px;
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
     }
-    #customModal .cancel { background:#ef4444; }
-    #customModal .confirm { background:#2563eb; }
+    .modal-box .cancel { background:#ef4444; }
+    .modal-box .confirm { background:#2563eb; }
   </style>
 </head>
 <body>
   <header>
-    <i class="fa-solid fa-stethoscope"></i>
     <h1>تقسيم طلاب المرحلة الرابعة</h1>
   </header>
-  
+
   <div class="container">
     <img src="table.png" alt="جدول تقسيم المجموعات">
 
@@ -207,34 +185,69 @@
       <button type="submit">إضافة</button>
     </form>
 
-    <!-- مكان عرض البطاقات -->
+    <!-- مكان عرض الكروبات -->
     <div id="groupsContainer" class="groups-grid"></div>
 
     <!-- دخول الإدارة -->
     <div style="margin-top:20px;">
-      <input type="password" id="adminPass" placeholder="أدخل الرمز السري">
+      <input type="password" id="adminPass" placeholder="أدخل الرمز السري للإدارة">
       <button onclick="checkAdmin()">دخول الإدارة</button>
     </div>
 
     <!-- لوحة الإدارة -->
-    <div class="admin-panel" id="adminPanel">
+    <div class="admin-panel" id="adminPanel" style="display:none; margin-top:20px; padding:15px; background:#f8fafc; border:1px dashed #2563eb; border-radius:10px;">
       <h3>لوحة الإدارة</h3>
       <button onclick="exportExcel()">تصدير البيانات إلى Excel</button>
       <input type="file" id="importFile" accept=".xlsx" onchange="importExcel(event)">
     </div>
-  </div>
 
-  <!-- نافذة منبثقة -->
-  <div id="customModal">
-    <div class="modal-box">
-      <h3>أدخل الرمز السري</h3>
-      <input type="password" id="modalInput" placeholder="الرمز السري">
-      <div class="actions">
-        <button class="cancel" onclick="closeModal()">إلغاء</button>
-        <button class="confirm" onclick="submitModal()">تأكيد</button>
+    <!-- نافذة إدخال الرمز -->
+    <div id="passwordModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3>أدخل الرمز السري</h3>
+        <input type="password" id="checkPassword" placeholder="رمزك السري">
+        <div class="actions">
+          <button class="cancel" onclick="closeModal('passwordModal')">إلغاء</button>
+          <button class="confirm" onclick="verifyPassword()">تأكيد</button>
+        </div>
       </div>
     </div>
-  </div>
+
+    <!-- نافذة اختيار تعديل / حذف -->
+    <div id="actionModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3>اختر العملية</h3>
+        <div class="actions">
+          <button class="cancel" onclick="closeModal('actionModal')">إلغاء</button>
+          <button class="confirm" onclick="openEditModal()">✏️ تعديل</button>
+          <button class="cancel" onclick="openDeleteModal()">🗑 حذف</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- نافذة تعديل الاسم -->
+    <div id="editModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3>تعديل الاسم</h3>
+        <input type="text" id="newName" placeholder="الاسم الجديد">
+        <div class="actions">
+          <button class="cancel" onclick="closeModal('editModal')">إلغاء</button>
+          <button class="confirm" onclick="updateName()">حفظ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- نافذة تأكيد الحذف -->
+    <div id="deleteModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3>هل أنت متأكد من حذف الاسم؟</h3>
+        <div class="actions">
+          <button class="cancel" onclick="closeModal('deleteModal')">إلغاء</button>
+          <button class="confirm" style="background:#ef4444" onclick="deleteStudent()">تأكيد الحذف</button>
+        </div>
+      </div>
+    </div>
+  </div> <!-- نهاية container -->
 
   <script>
     // إعدادات Firebase
@@ -252,18 +265,21 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const form = document.getElementById('addForm');
-    const adminPanel = document.getElementById('adminPanel');
-    const ADMIN_PASS = "qfvlu10178";
-    let isAdmin = false;
+    const form = document.getElementById("addForm");
+    const groupsContainer = document.getElementById("groupsContainer");
+    let currentStudent = null;
 
-    // إضافة اسم
-    form.addEventListener('submit', async (e) => {
+    // فتح/إغلاق المودالات
+    function openModal(id){ document.getElementById(id).style.display="flex"; }
+    function closeModal(id){ document.getElementById(id).style.display="none"; }
+
+    // إضافة طالب جديد
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const pass = document.getElementById('studentPass').value.trim();
-      const group = document.getElementById('group').value;
-      const subgroup = document.getElementById('subgroup').value;
+      const name = document.getElementById("name").value.trim();
+      const pass = document.getElementById("studentPass").value.trim();
+      const group = document.getElementById("group").value;
+      const subgroup = document.getElementById("subgroup").value;
 
       if (!name || !pass) return;
 
@@ -273,150 +289,148 @@
       const count = Object.keys(data).length;
 
       if (count >= 10) {
-        alert("هذا الـ Subgroup مكتمل (10 طلاب)");
+        alert("❌ هذا الـ Subgroup مكتمل (10 طلاب)");
         return;
       }
 
-      ref.push({ name, group, subgroup, pass });
+      ref.push({ name, pass, group, subgroup });
       form.reset();
     });
 
-    // عرض البطاقات
-    function renderGroups(snapshot) {
-      const container = document.getElementById("groupsContainer");
-      container.innerHTML = "";
-
-      const groups = ["A1", "A2", "B1", "B2"];
-      const subgroups = ["Subgroup 1","Subgroup 2","Subgroup 3","Subgroup 4","Subgroup 5"];
-
+    // عرض المجموعات
+    db.ref("students").on("value", snapshot => {
+      groupsContainer.innerHTML = "";
       const data = snapshot.val() || {};
 
-      groups.forEach(g => {
-        subgroups.forEach(sg => {
-          const studentsObj = data[g]?.[sg] || {};
-          const students = Object.entries(studentsObj);
-          const count = students.length;
+      ["A1","A2","B1","B2"].forEach(g=>{
+        for(let i=1;i<=5;i++){
+          const sg = `Subgroup ${i}`;
+          const students = data[g] && data[g][sg] ? data[g][sg] : {};
+          const studentList = Object.entries(students);
 
           const card = document.createElement("div");
-          card.classList.add("group-card");
-
-          let cardHTML = `
+          card.className="group-card";
+          card.innerHTML = `
             <div class="group-header">${g} - ${sg}</div>
-            <div class="group-count">${count}/10</div>
-            <div>
+            <div class="group-count">${studentList.length}/10</div>
           `;
 
-          if (count > 0) {
-            cardHTML += students.map(([id, st]) => `
-              <div>
-                ${st.name}
-                <button class="edit-btn" onclick="editStudent('${g}','${sg}','${id}','${st.pass}')">✏️</button>
-                ${isAdmin ? `<button onclick="deleteStudent('${g}','${sg}','${id}')">🗑</button>` : ""}
-              </div>
-            `).join("");
+          if(studentList.length>0){
+            studentList.forEach(([id,st])=>{
+              const studentDiv=document.createElement("div");
+              studentDiv.className="student";
+              studentDiv.innerHTML=`
+                <span>${st.name}</span>
+                <button onclick="openPasswordModal('${g}','${sg}','${id}')">✏️</button>
+              `;
+              card.appendChild(studentDiv);
+            });
           } else {
-            cardHTML += `<div class="group-empty">لا يوجد طلاب بعد</div>`;
+            card.innerHTML+=`<div class="group-empty">لا يوجد طلاب بعد</div>`;
           }
 
-          cardHTML += "</div>";
-          card.innerHTML = cardHTML;
-          container.appendChild(card);
-        });
+          groupsContainer.appendChild(card);
+        }
       });
+    });
+
+    // فتح نافذة الرمز
+    function openPasswordModal(group,subgroup,id){
+      currentStudent={group,subgroup,id};
+      document.getElementById("checkPassword").value = "";
+      openModal("passwordModal");
     }
 
-    db.ref("students").on("value", renderGroups);
-
-    // ================== نافذة مخصصة ==================
-    let modalCallback = null;
-    function openModal(callback) {
-      document.getElementById("customModal").style.display = "flex";
-      document.getElementById("modalInput").value = "";
-      modalCallback = callback;
-    }
-    function closeModal() {
-      document.getElementById("customModal").style.display = "none";
-    }
-    function submitModal() {
-      const value = document.getElementById("modalInput").value;
-      if (modalCallback) modalCallback(value);
-      closeModal();
-    }
-
-    // تعديل أو حذف طالب
-    function editStudent(group, subgroup, id, correctPass) {
-      openModal((enteredPass) => {
-        if (enteredPass === correctPass) {
-          const choice = confirm("هل تريد تعديل الاسم؟ (موافق = تعديل / إلغاء = حذف)");
-          if (choice) {
-            const newName = prompt("أدخل الاسم الجديد:");
-            if (newName) {
-              db.ref(`students/${group}/${subgroup}/${id}`).update({ name: newName });
-              alert("✅ تم تعديل الاسم");
-            }
-          } else {
-            if (confirm("هل تريد حذف اسمك نهائيًا؟")) {
-              db.ref(`students/${group}/${subgroup}/${id}`).remove();
-              alert("🗑 تم حذف الاسم");
-            }
-          }
+    // تحقق من الرمز
+    function verifyPassword(){
+      const inputPass=document.getElementById("checkPassword").value.trim();
+      const {group,subgroup,id}=currentStudent;
+      db.ref(`students/${group}/${subgroup}/${id}`).once("value").then(snap=>{
+        const st=snap.val();
+        if(st && st.pass===inputPass){
+          closeModal("passwordModal");
+          openModal("actionModal");
         } else {
-          alert("❌ الرمز غير صحيح");
+          alert("❌ رمز غير صحيح");
         }
       });
     }
 
-    // حذف طالب (للأدمن)
-    function deleteStudent(group, subgroup, id) {
-      if (confirm("هل تريد حذف هذا الطالب؟")) {
-        db.ref(`students/${group}/${subgroup}/${id}`).remove();
-      }
+    // فتح نافذة تعديل
+    function openEditModal(){
+      closeModal("actionModal");
+      document.getElementById("newName").value = "";
+      openModal("editModal");
     }
 
-    // دخول الإدارة
+    // تحديث الاسم
+    function updateName(){
+      const newName=document.getElementById("newName").value.trim();
+      if(!newName) return;
+      const {group,subgroup,id}=currentStudent;
+      db.ref(`students/${group}/${subgroup}/${id}/name`).set(newName);
+      closeModal("editModal");
+    }
+
+    // فتح نافذة الحذف
+    function openDeleteModal(){
+      closeModal("actionModal");
+      openModal("deleteModal");
+    }
+
+    // حذف الطالب
+    function deleteStudent(){
+      const {group,subgroup,id}=currentStudent;
+      db.ref(`students/${group}/${subgroup}/${id}`).remove();
+      closeModal("deleteModal");
+    }
+
+    // لوحة الإدارة
+    const ADMIN_PASS = "qfvlu10178";
+    let isAdmin = false;
+
     function checkAdmin() {
-      const pass = document.getElementById('adminPass').value;
-      if (pass === ADMIN_PASS) {
+      const pass = document.getElementById("adminPass").value.trim();
+      if(pass === ADMIN_PASS){
         isAdmin = true;
-        adminPanel.style.display = "block";
-        alert("تم الدخول إلى وضع الإدارة");
-        db.ref("students").once("value").then(renderGroups);
+        document.getElementById("adminPanel").style.display="block";
+        alert("✅ تم الدخول إلى وضع الإدارة");
       } else {
-        alert("رمز غير صحيح");
+        alert("❌ رمز غير صحيح");
       }
     }
 
     // تصدير Excel
     function exportExcel() {
-      db.ref('students').once('value').then(snapshot => {
-        const data = [];
-        const val = snapshot.val();
-        for (let g in val) {
-          for (let sg in val[g]) {
-            for (let id in val[g][sg]) {
+      db.ref("students").once("value").then(snapshot=>{
+        const data=[];
+        const val=snapshot.val();
+        for(let g in val){
+          for(let sg in val[g]){
+            for(let id in val[g][sg]){
               data.push(val[g][sg][id]);
             }
           }
         }
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Students");
-        XLSX.writeFile(wb, "students.xlsx");
+        const ws=XLSX.utils.json_to_sheet(data);
+        const wb=XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb,ws,"Students");
+        XLSX.writeFile(wb,"students.xlsx");
       });
     }
 
     // استيراد Excel
     function importExcel(e) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, { type: 'array' });
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
-        db.ref('students').set({});
-        json.forEach(st => {
-          if (st.group && st.subgroup && st.name) {
+      const file=e.target.files[0];
+      const reader=new FileReader();
+      reader.onload=(evt)=>{
+        const data=new Uint8Array(evt.target.result);
+        const wb=XLSX.read(data,{type:"array"});
+        const sheet=wb.Sheets[wb.SheetNames[0]];
+        const json=XLSX.utils.sheet_to_json(sheet);
+        db.ref("students").set({});
+        json.forEach(st=>{
+          if(st.group && st.subgroup && st.name){
             db.ref(`students/${st.group}/${st.subgroup}`).push(st);
           }
         });
@@ -426,10 +440,11 @@
   </script>
 
   <footer style="text-align:center; margin:20px 0; color:#9ca3af; font-size:13px; font-style:italic; font-weight:300;">
-    made by <b>Ahmed Rasool</b>
+    Developed by <b>Ahmed Rasool © 2025</b>
   </footer>
 </body>
 </html>
+
 
 
 
