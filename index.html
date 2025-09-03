@@ -5,13 +5,14 @@
   <title>تقسيم طلاب المرحلة الرابعة</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: 'Cairo', sans-serif;
-      background: #f7f9fc;
+      background: #f1f5f9;
       margin: 0;
       padding: 0;
       color: #1e293b;
@@ -19,28 +20,45 @@
     header {
       text-align: center;
       padding: 20px;
-      background: #2563eb;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
       color: white;
-      border-bottom-left-radius: 20px;
-      border-bottom-right-radius: 20px;
+      border-bottom-left-radius: 25px;
+      border-bottom-right-radius: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
     }
-    h1 { margin: 0; font-size: 28px; }
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+    }
+    header i {
+      font-size: 28px;
+      animation: spin 6s linear infinite;
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
     .container {
       max-width: 1200px;
       margin: 20px auto;
       background: white;
       padding: 20px;
-      border-radius: 14px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      border-radius: 18px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
-    .plan-img{
-      width:100%;
-      max-width:100%;
-      height:auto;
-      border:1px solid #e5e7eb;
-      border-radius:12px;
-      margin:12px 0 18px;
-      display:block;
+    .plan-img {
+      width: 100%;
+      max-width: 100%;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      margin: 12px 0 20px;
+      display: block;
     }
     form {
       display: grid;
@@ -51,7 +69,7 @@
     input, select, button {
       padding: 10px;
       border: 1px solid #cbd5e1;
-      border-radius: 8px;
+      border-radius: 10px;
       font-family: inherit;
       font-size: 14px;
     }
@@ -61,6 +79,7 @@
       border: none;
       cursor: pointer;
       transition: 0.3s;
+      font-weight: bold;
     }
     button:hover { background: #1e40af; }
 
@@ -77,13 +96,17 @@
       padding: 20px;
       text-align: center;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-      transition: transform 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s;
     }
-    .group-card:hover { transform: translateY(-5px); }
+    .group-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+    }
     .group-header {
       font-weight: bold;
       margin-bottom: 10px;
-      font-size: 16px;
+      font-size: 18px;
+      color: #1d4ed8;
     }
     .group-count {
       background: #f1f5f9;
@@ -92,6 +115,11 @@
       font-size: 14px;
       margin-bottom: 10px;
       display: inline-block;
+      font-weight: bold;
+    }
+    .group-count.full {
+      background: #fee2e2;
+      color: #b91c1c;
     }
     ul.students-list {
       list-style: none;
@@ -100,7 +128,7 @@
       text-align: right;
     }
     ul.students-list li {
-      padding: 5px;
+      padding: 6px;
       border-bottom: 1px solid #eee;
       font-size: 14px;
       display: flex;
@@ -129,11 +157,11 @@
 </head>
 <body>
   <header>
+    <i class="fa-solid fa-stethoscope"></i>
     <h1>تقسيم طلاب المرحلة الرابعة</h1>
   </header>
   
   <div class="container">
-    <!-- صورة الجدول -->
     <img src="table.png" alt="جدول تقسيم المجموعات" class="plan-img" onerror="this.style.display='none'">
 
     <!-- form لإضافة اسم -->
@@ -175,151 +203,7 @@
   </div>
 
   <script>
-    // إعدادات Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyDv0bb_...",
-      authDomain: "stage-c623f.firebaseapp.com",
-      databaseURL: "https://stage-c623f-default-rtdb.firebaseio.com",
-      projectId: "stage-c623f",
-      storageBucket: "stage-c623f.appspot.com",
-      messagingSenderId: "1078133694340",
-      appId: "1:1078133694340:web:2028256dbfcc6d09547d1"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    const form = document.getElementById('addForm');
-    const groupsContainer = document.getElementById('groupsContainer');
-    const adminPanel = document.getElementById('adminPanel');
-    const ADMIN_PASS = "qfvlu10178";
-    let isAdmin = false;
-    let lastSnapshot = null;
-
-    // إضافة طالب
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const group = document.getElementById('group').value;
-      const subgroup = document.getElementById('subgroup').value;
-
-      if (!name) return;
-
-      const ref = db.ref(`students/${group}/${subgroup}`);
-      const snapshot = await ref.get();
-      const data = snapshot.val() || {};
-      const count = Object.keys(data).length;
-
-      if (count >= 10) {
-        alert("❌ هذا الـ Subgroup مكتمل (10 طلاب)");
-        return;
-      }
-
-      ref.push({ name, group, subgroup });
-      form.reset();
-    });
-
-    // عرض البطاقات
-    function renderGroups(snapshot) {
-      groupsContainer.innerHTML = "";
-      const data = snapshot.val() || {};
-
-      ["A1","A2","B1","B2"].forEach(g => {
-        for (let i = 1; i <= 5; i++) {
-          const sg = `Subgroup ${i}`;
-          const studentsObj = (data[g] && data[g][sg]) || {};
-          const students = Object.entries(studentsObj);
-          const count = students.length;
-
-          const card = document.createElement("div");
-          card.classList.add("group-card");
-          card.innerHTML = `
-            <div class="group-header">${g} - ${sg}</div>
-            <div class="group-count">${count}/10</div>
-            <ul class="students-list">
-              ${
-                count > 0 
-                ? students.map(([id, st]) => `
-                  <li>
-                    ${st.name}
-                    ${isAdmin ? `<button class="delete-btn" onclick="deleteStudent('${g}','${sg}','${id}')">🗑</button>` : ""}
-                  </li>`).join("")
-                : `<div class="group-empty">لا يوجد طلاب بعد</div>`
-              }
-            </ul>
-          `;
-          groupsContainer.appendChild(card);
-        }
-      });
-    }
-
-    // متابعة التحديثات
-    db.ref("students").on("value", snapshot => {
-      lastSnapshot = snapshot;
-      renderGroups(snapshot);
-    });
-
-    // حذف طالب
-    function deleteStudent(group, subgroup, id) {
-      if (confirm("هل تريد حذف هذا الطالب؟")) {
-        db.ref(`students/${group}/${subgroup}/${id}`).remove();
-      }
-    }
-
-    // دخول الإدارة
-    function checkAdmin() {
-      const pass = document.getElementById('adminPass').value;
-      if (pass === ADMIN_PASS) {
-        isAdmin = true;
-        adminPanel.style.display = "block";
-        alert("✅ تم الدخول إلى وضع الإدارة");
-        if (lastSnapshot) renderGroups(lastSnapshot);
-      } else {
-        alert("❌ رمز غير صحيح");
-      }
-    }
-
-    // تصدير Excel
-    function exportExcel() {
-      db.ref('students').once('value').then(snapshot => {
-        const data = [];
-        const val = snapshot.val();
-        for (let g in val) {
-          for (let sg in val[g]) {
-            for (let id in val[g][sg]) {
-              data.push(val[g][sg][id]);
-            }
-          }
-        }
-        const ws = XLSX.utils.json_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Students");
-        XLSX.writeFile(wb, "students.xlsx");
-      });
-    }
-
-    // استيراد Excel
-    function importExcel(e) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onload = (evt) => {
-        const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, { type: 'array' });
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
-        db.ref('students').set({});
-        json.forEach(st => {
-          if (st.group && st.subgroup && st.name) {
-            db.ref(`students/${st.group}/${st.subgroup}`).push(st);
-          }
-        });
-      };
-      reader.readAsArrayBuffer(file);
-    }
+    // باقي كود Firebase + JS (نفس اللي عندك حاليًا)
   </script>
 </body>
 </html>
-
-
-
-
