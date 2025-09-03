@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>تقسيم طلاب المرحلة الرابعة</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: #f7f9fc;
+      margin: 0;
+      padding: 0;
+      color: #1e293b;
+    }
+    header {
+      text-align: center;
+      padding: 20px;
+      background: #2563eb;
+      color: white;
+    }
+    h1 { margin: 0; font-size: 28px; }
+    .container {
+      max-width: 900px;
+      margin: 20px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    img {
+      max-width: 100%;
+      display: block;
+      margin: 15px auto;
+      border: 1px solid #ccc;
+    }
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr auto;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    input, select, button {
+      padding: 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover { background: #1e40af; }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      text-align: center;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #e2e8f0;
+    }
+    th { background: #f1f5f9; }
+    .admin-panel {
+      display: none;
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8fafc;
+      border: 1px dashed #2563eb;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>تقسيم طلاب المرحلة الرابعة</h1>
+  </header>
+  
+  <div class="container">
+    <img src="table.png" alt="جدول تقسيم المجموعات">
+
+    <!-- form لإضافة اسم -->
+    <form id="addForm">
+      <input type="text" id="name" placeholder="الاسم الثلاثي" required>
+      <select id="group" required>
+        <option value="">اختر Group</option>
+        <option>A1</option>
+        <option>A2</option>
+        <option>B1</option>
+        <option>B2</option>
+      </select>
+      <select id="subgroup" required>
+        <option value="">اختر Subgroup</option>
+        <option>Subgroup 1</option>
+        <option>Subgroup 2</option>
+        <option>Subgroup 3</option>
+        <option>Subgroup 4</option>
+        <option>Subgroup 5</option>
+      </select>
+      <button type="submit">إضافة</button>
+    </form>
+
+    <!-- جدول الأسماء -->
+    <table>
+      <thead>
+        <tr>
+          <th>الاسم</th>
+          <th>Group</th>
+          <th>Subgroup</th>
+          <th class="admin-col">إجراءات</th>
+        </tr>
+      </thead>
+      <tbody id="studentsTable"></tbody>
+    </table>
+
+    <!-- دخول الإدارة -->
+    <div style="margin-top:20px;">
+      <input type="password" id="adminPass" placeholder="أدخل الرمز السري">
+      <button onclick="checkAdmin()">دخول الإدارة</button>
+    </div>
+
+    <!-- لوحة الإدارة -->
+    <div class="admin-panel" id="adminPanel">
+      <h3>لوحة الإدارة</h3>
+      <button onclick="exportExcel()">تصدير البيانات إلى Excel</button>
+      <input type="file" id="importFile" accept=".xlsx" onchange="importExcel(event)">
+    </div>
+  </div>
+
+  <script>
+    // إعدادات Firebase - ضع معلومات مشروعك هنا
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const form = document.getElementById('addForm');
+    const tableBody = document.getElementById('studentsTable');
+    const adminPanel = document.getElementById('adminPanel');
+    const ADMIN_PASS = "qfvlu10178";
+    let isAdmin = false;
+
+    // إضافة اسم
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const group = document.getElementById('group').value;
+      const subgroup = document.getElementById('subgroup').value;
+
+      if (!name) return;
+
+      const ref = db.ref(`students/${group}/${subgroup}`);
+      const snapshot = await ref.get();
+      const data = snapshot.val() || {};
+      const count = Object.keys(data).length;
+
+      if (count >= 10) {
+        alert("هذا الـ Subgroup مكتمل (10 طلاب)");
+        return;
+      }
+
+      ref.push({ name, group, subgroup });
+      form.reset();
+    });
+
+    // عرض البيانات
+    db.ref('students').on('value', (snapshot) => {
+      tableBody.innerHTML = "";
+      const data = snapshot.val();
+      if (!data) return;
+      for (let group in data) {
+        for (let subgroup in data[group]) {
+          for (let id in data[group][subgroup]) {
+            const student = data[group][subgroup][id];
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${student.name}</td>
+              <td>${student.group}</td>
+              <td>${student.subgroup}</td>
+              <td class="admin-col">
+                ${isAdmin ? `<button onclick="removeStudent('${group}','${subgroup}','${id}')">حذف</button>` : ""}
+              </td>`;
+            tableBody.appendChild(tr);
+          }
+        }
+      }
+    });
+
+    // حذف طالب (للمدير)
+    function removeStudent(group, subgroup, id) {
+      if (confirm("هل تريد حذف هذا الطالب؟")) {
+        db.ref(`students/${group}/${subgroup}/${id}`).remove();
+      }
+    }
+
+    // دخول الإدارة
+    function checkAdmin() {
+      const pass = document.getElementById('adminPass').value;
+      if (pass === ADMIN_PASS) {
+        isAdmin = true;
+        adminPanel.style.display = "block";
+        alert("تم الدخول إلى وضع الإدارة");
+        db.ref('students').once('value'); // لإعادة التحديث مع الأزرار
+      } else {
+        alert("رمز غير صحيح");
+      }
+    }
+
+    // تصدير Excel
+    function exportExcel() {
+      db.ref('students').once('value').then(snapshot => {
+        const data = [];
+        const val = snapshot.val();
+        for (let g in val) {
+          for (let sg in val[g]) {
+            for (let id in val[g][sg]) {
+              data.push(val[g][sg][id]);
+            }
+          }
+        }
+        const ws = XLSX.utils.json_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Students");
+        XLSX.writeFile(wb, "students.xlsx");
+      });
+    }
+
+    // استيراد Excel
+    function importExcel(e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet);
+        db.ref('students').set({}); // مسح قديم
+        json.forEach(st => {
+          if (st.group && st.subgroup && st.name) {
+            db.ref(`students/${st.group}/${st.subgroup}`).push(st);
+          }
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    }
+  </script>
+</body>
+</html>
