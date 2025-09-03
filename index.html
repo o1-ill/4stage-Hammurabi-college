@@ -321,7 +321,9 @@
               studentDiv.className="student";
               studentDiv.innerHTML=`
                 <span>${st.name}</span>
-                <button onclick="openPasswordModal('${g}','${sg}','${id}')">✏️</button>
+                ${isAdmin 
+  ? `<button onclick="openActionDirect('${g}','${sg}','${id}')">⚙️</button>` 
+  : `<button onclick="openPasswordModal('${g}','${sg}','${id}')">✏️</button>`}
               `;
               card.appendChild(studentDiv);
             });
@@ -384,7 +386,11 @@
       db.ref(`students/${group}/${subgroup}/${id}`).remove();
       closeModal("deleteModal");
     }
-
+    // فتح نافذة الإجراءات مباشرة عند كون المستخدم Admin
+    function openActionDirect(group, subgroup, id) {
+      currentStudent = {group, subgroup, id};
+      openModal("actionModal");
+    }
     // لوحة الإدارة
     const ADMIN_PASS = "qfvlu10178";
     let isAdmin = false;
@@ -440,6 +446,7 @@
   </script>
 </body>
 </html>
+
 
 
 
