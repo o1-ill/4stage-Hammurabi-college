@@ -2,142 +2,79 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>تقسيم طلاب المرحلة الرابعة</title>
+  <title>إدارة طلاب المرحلة الرابعة</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body {
-      font-family: 'Cairo', sans-serif;
-      background: #f7f9fc;
-      margin: 0;
-      padding: 0;
-      color: #1e293b;
-    }
-    header {
-      text-align: center;
-      padding: 20px;
-      background: #2563eb;
-      color: white;
-    }
-    h1 { margin: 0; font-size: 28px; }
-    .container {
-      max-width: 900px;
-      margin: 20px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 14px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    img {
-      max-width: 100%;
-      display: block;
-      margin: 15px auto;
-      border: 1px solid #ccc;
-    }
-    form {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr auto;
-      gap: 10px;
-      margin-top: 20px;
-    }
-    input, select, button {
-      padding: 10px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 14px;
-    }
-    button {
-      background: #2563eb;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
+    body { font-family: Arial, sans-serif; margin: 30px; background: #f9f9f9; }
+    h1 { text-align: center; color: #2563eb; }
+    form { display: flex; gap: 10px; margin-bottom: 20px; }
+    input, select, button { padding: 8px; font-size: 14px; }
+    button { background: #2563eb; color: white; border: none; cursor: pointer; }
     button:hover { background: #1e40af; }
-    table {
-      width: 100%;
-      margin-top: 20px;
-      border-collapse: collapse;
-      text-align: center;
-    }
-    th, td {
-      padding: 10px;
-      border: 1px solid #e2e8f0;
-    }
-    th { background: #f1f5f9; }
-    .admin-panel {
-      display: none;
-      margin-top: 20px;
-      padding: 15px;
-      background: #f8fafc;
-      border: 1px dashed #2563eb;
-      border-radius: 10px;
-    }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #eee; }
+    .admin-panel { display: none; margin-top: 20px; padding: 15px; border: 1px dashed #2563eb; border-radius: 10px; background: #f1f5f9; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>تقسيم طلاب المرحلة الرابعة</h1>
-  </header>
-  
-  <div class="container">
-    <img src="table.png" alt="جدول تقسيم المجموعات">
 
-    <!-- form لإضافة اسم -->
-    <form id="addForm">
-      <input type="text" id="name" placeholder="الاسم الثلاثي" required>
-      <select id="group" required>
-        <option value="">اختر Group</option>
-        <option>A1</option>
-        <option>A2</option>
-        <option>B1</option>
-        <option>B2</option>
-      </select>
-      <select id="subgroup" required>
-        <option value="">اختر Subgroup</option>
-        <option>Subgroup 1</option>
-        <option>Subgroup 2</option>
-        <option>Subgroup 3</option>
-        <option>Subgroup 4</option>
-        <option>Subgroup 5</option>
-      </select>
-      <button type="submit">إضافة</button>
-    </form>
+  <h1>إدارة طلاب المرحلة الرابعة</h1>
 
-    <!-- جدول الأسماء -->
-    <table>
-      <thead>
-        <tr>
-          <th>الاسم</th>
-          <th>Group</th>
-          <th>Subgroup</th>
-          <th id="adminCol" style="display:none;">إجراءات</th>
-        </tr>
-      </thead>
-      <tbody id="studentsTable"></tbody>
-    </table>
+  <!-- form لإضافة طالب -->
+  <form id="addForm">
+    <input type="text" id="name" placeholder="الاسم الثلاثي" required>
+    <select id="group" required>
+      <option value="">اختر Group</option>
+      <option>A1</option>
+      <option>A2</option>
+      <option>B1</option>
+      <option>B2</option>
+    </select>
+    <select id="subgroup" required>
+      <option value="">اختر Subgroup</option>
+      <option>Subgroup 1</option>
+      <option>Subgroup 2</option>
+      <option>Subgroup 3</option>
+      <option>Subgroup 4</option>
+      <option>Subgroup 5</option>
+    </select>
+    <button type="submit">إضافة</button>
+  </form>
 
-    <!-- دخول الإدارة -->
-    <div style="margin-top:20px;">
-      <input type="password" id="adminPass" placeholder="أدخل الرمز السري">
-      <button onclick="checkAdmin()">دخول الإدارة</button>
-    </div>
+  <!-- جدول عرض الطلاب -->
+  <table>
+    <thead>
+      <tr>
+        <th>الاسم</th>
+        <th>Group</th>
+        <th>Subgroup</th>
+        <th id="actionsCol" style="display:none;">إجراءات</th>
+      </tr>
+    </thead>
+    <tbody id="studentsTable"></tbody>
+  </table>
 
-    <!-- لوحة الإدارة -->
-    <div class="admin-panel" id="adminPanel">
-      <h3>لوحة الإدارة</h3>
-      <button onclick="exportExcel()">تصدير البيانات إلى Excel</button>
-      <input type="file" id="importFile" accept=".xlsx" onchange="importExcel(event)">
-    </div>
+  <!-- دخول الإدارة -->
+  <div style="margin-top:20px;">
+    <input type="password" id="adminPass" placeholder="أدخل الرمز السري">
+    <button onclick="checkAdmin()">دخول الإدارة</button>
+  </div>
+
+  <!-- لوحة الإدارة -->
+  <div class="admin-panel" id="adminPanel">
+    <h3>لوحة الإدارة</h3>
+    <button onclick="exportExcel()">📤 تصدير البيانات إلى Excel</button>
+    <input type="file" id="importFile" accept=".xlsx" onchange="importExcel(event)">
   </div>
 
   <script>
-    // إعدادات Firebase - ضع معلومات مشروعك هنا
+    // ⚠️ ضع معلومات Firebase الخاصة بك هنا
     const firebaseConfig = {
-      apiKey: "AIzaSyDv0bb_...",   // 👈 انسخ القيمة من Firebase
+      apiKey: "AIzaSyDv0bb_...",
       authDomain: "stage-c623f.firebaseapp.com",
       databaseURL: "https://stage-c623f-default-rtdb.firebaseio.com",
       projectId: "stage-c623f",
@@ -153,10 +90,12 @@
     const form = document.getElementById('addForm');
     const tableBody = document.getElementById('studentsTable');
     const adminPanel = document.getElementById('adminPanel');
-    const ADMIN_PASS = "qfvlu10178"; // كلمة السر للإدارة
+    const actionsCol = document.getElementById('actionsCol');
+    const ADMIN_PASS = "12345"; // 🔑 غيّر الباسورد
+
     let isAdmin = false;
 
-    // إضافة اسم
+    // إضافة طالب
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('name').value.trim();
@@ -165,51 +104,32 @@
 
       if (!name) return;
 
-      const ref = db.ref(`students/${group}/${subgroup}`);
-      const snapshot = await ref.get();
-      const data = snapshot.val() || {};
-      const count = Object.keys(data).length;
-
-      if (count >= 10) {
-        alert("هذا الـ Subgroup مكتمل (10 طلاب)");
-        return;
-      }
-
-      ref.push({ name, group, subgroup });
+      db.ref(`students/${group}/${subgroup}`).push({ name, group, subgroup });
       form.reset();
     });
 
-    // عرض البيانات
+    // عرض الطلاب
     db.ref("students").on("value", snapshot => {
-      tableBody.innerHTML = ""; // مسح الجدول
+      tableBody.innerHTML = ""; 
+      const data = snapshot.val();
+      if (!data) return;
 
-      snapshot.forEach(groupSnap => {
-        groupSnap.forEach(subgroupSnap => {
-          subgroupSnap.forEach(studentSnap => {
-            const student = studentSnap.val();
-            const path = studentSnap.ref.path.pieces_.join("/"); // المسار الكامل للطالب
-
+      for (let g in data) {
+        for (let sg in data[g]) {
+          for (let id in data[g][sg]) {
+            const student = data[g][sg][id];
             const row = document.createElement("tr");
             row.innerHTML = `
               <td>${student.name}</td>
               <td>${student.group}</td>
               <td>${student.subgroup}</td>
-              ${isAdmin ? `<td><button onclick="deleteStudent('${path}')">🗑 حذف</button></td>` : ""}
+              ${isAdmin ? `<td><button onclick="deleteStudent('${g}','${sg}','${id}')">🗑 حذف</button></td>` : ""}
             `;
             tableBody.appendChild(row);
-          });
-        });
-      });
-    });
-
-    // دالة الحذف
-    function deleteStudent(path) {
-      if (confirm("هل أنت متأكد من حذف هذا الطالب؟")) {
-        db.ref(path).remove()
-          .then(() => alert("✅ تم الحذف بنجاح"))
-          .catch(err => alert("❌ خطأ: " + err.message));
+          }
+        }
       }
-    }
+    });
 
     // دخول الإدارة
     function checkAdmin() {
@@ -217,10 +137,18 @@
       if (pass === ADMIN_PASS) {
         isAdmin = true;
         adminPanel.style.display = "block";
-        document.getElementById("adminCol").style.display = "";
-        alert("تم الدخول إلى وضع الإدارة");
+        actionsCol.style.display = "";
+        alert("تم الدخول كأدمن ✅");
+        db.ref('students').once('value'); // تحديث الجدول مع الأزرار
       } else {
-        alert("رمز غير صحيح");
+        alert("رمز غير صحيح ❌");
+      }
+    }
+
+    // حذف طالب
+    function deleteStudent(group, subgroup, id) {
+      if (confirm("هل تريد حذف هذا الطالب؟")) {
+        db.ref(`students/${group}/${subgroup}/${id}`).remove();
       }
     }
 
@@ -252,7 +180,7 @@
         const wb = XLSX.read(data, { type: 'array' });
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json(sheet);
-        db.ref('students').set({}); // مسح قديم
+        db.ref('students').set({});
         json.forEach(st => {
           if (st.group && st.subgroup && st.name) {
             db.ref(`students/${st.group}/${st.subgroup}`).push(st);
