@@ -392,20 +392,21 @@
     let isAdmin = false;
 
     function checkAdmin() {
-      const pass = document.getElementById("adminPass").value.trim();
-      if(pass === ADMIN_PASS){
-        isAdmin = true;
-        document.getElementById("adminPanel").style.display="block";
-        alert("✅ تم الدخول إلى وضع الإدارة");
-      } else {
-        alert("❌ رمز غير صحيح");
-        // دالة خاصة بالمدير
+  const pass = document.getElementById("adminPass").value.trim();
+  if(pass === ADMIN_PASS){
+    isAdmin = true;
+    document.getElementById("adminPanel").style.display="block";
+    alert("✅ تم الدخول إلى وضع الإدارة");
+  } else {
+    alert("❌ رمز غير صحيح");
+  }
+}
+
+// دالة خاصة بالمدير (خارج checkAdmin)
 function openAdminAction(group, subgroup, id) {
   currentStudent = { group, subgroup, id };
   openModal("actionModal"); // يفتح نافذة الخيارات (تعديل / حذف)
 }
-      }
-    }
 
     // تصدير Excel
     function exportExcel() {
@@ -451,6 +452,7 @@ function openAdminAction(group, subgroup, id) {
   </footer>
 </body>
 </html>
+
 
 
 
