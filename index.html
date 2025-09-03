@@ -26,19 +26,12 @@
     }
     h1 { margin: 0; font-size: 28px; }
     .container {
-      max-width: 900px;
+      max-width: 1200px;
       margin: 20px auto;
       background: white;
       padding: 20px;
       border-radius: 14px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    img {
-      max-width: 100%;
-      display: block;
-      margin: 15px auto;
-      border: 1px solid #ccc;
-      border-radius: 10px;
     }
     form {
       display: grid;
@@ -61,17 +54,63 @@
       transition: 0.3s;
     }
     button:hover { background: #1e40af; }
-    table {
-      width: 100%;
+
+    /* شبكة البطاقات */
+    .groups-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
       margin-top: 20px;
-      border-collapse: collapse;
+    }
+    .group-card {
+      background: #fff;
+      border-radius: 15px;
+      padding: 20px;
       text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
     }
-    th, td {
-      padding: 10px;
-      border: 1px solid #e2e8f0;
+    .group-card:hover {
+      transform: translateY(-5px);
     }
-    th { background: #f1f5f9; }
+    .group-header {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 16px;
+    }
+    .group-count {
+      background: #f1f5f9;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+    ul.students-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      text-align: right;
+    }
+    ul.students-list li {
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .delete-btn {
+      background: #dc2626;
+      color: white;
+      border: none;
+      padding: 3px 7px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .delete-btn:hover { background: #b91c1c; }
+
     .admin-panel {
       display: none;
       margin-top: 20px;
@@ -80,16 +119,6 @@
       border: 1px dashed #2563eb;
       border-radius: 10px;
     }
-    .delete-btn {
-      background: #dc2626;
-      color: white;
-      border: none;
-      padding: 5px 10px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 13px;
-    }
-    .delete-btn:hover { background: #b91c1c; }
   </style>
 </head>
 <body>
@@ -98,8 +127,6 @@
   </header>
   
   <div class="container">
-    <img src="table.png" alt="جدول تقسيم المجموعات">
-
     <!-- form لإضافة اسم -->
     <form id="addForm">
       <input type="text" id="name" placeholder="الاسم الثلاثي" required>
@@ -121,45 +148,8 @@
       <button type="submit">➕ إضافة</button>
     </form>
 
-   <script>
-function renderGroups(snapshot) {
-  const container = document.getElementById("groupsContainer");
-  container.innerHTML = "";
-  const data = snapshot.val() || {};
-
-  for (let g in data) {
-    for (let sg in data[g]) {
-      const studentsObj = data[g][sg];
-      const students = Object.entries(studentsObj); // [id, {name, group, subgroup}]
-      const count = students.length;
-
-      const card = document.createElement("div");
-      card.classList.add("group-card");
-
-      const full = count >= 10 ? `style="color:red;font-weight:bold"` : "";
-
-      card.innerHTML = `
-        <div class="group-header">${g} - ${sg}</div>
-        <div class="group-count" ${full}>${count}/10</div>
-        ${
-          count > 0 
-          ? students.map(([id, s]) => `
-              <div>
-                ${s.name}
-                ${isAdmin ? `<button onclick="removeStudent('${g}','${sg}','${id}')">❌</button>` : ""}
-              </div>
-            `).join("")
-          : `<div class="group-empty">لا يوجد طلاب بعد</div>`
-        }
-      `;
-
-      container.appendChild(card);
-    }
-  }
-}
-
-db.ref("students").on("value", renderGroups);
-</script>
+    <!-- مكان عرض البطاقات -->
+    <div id="groupsContainer" class="groups-grid"></div>
 
     <!-- دخول الإدارة -->
     <div style="margin-top:20px;">
@@ -176,7 +166,7 @@ db.ref("students").on("value", renderGroups);
   </div>
 
   <script>
-    // 🔹 إعدادات Firebase (غيّرها حسب مشروعك)
+    // إعدادات Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyDv0bb_...",
       authDomain: "stage-c623f.firebaseapp.com",
@@ -191,12 +181,12 @@ db.ref("students").on("value", renderGroups);
     const db = firebase.database();
 
     const form = document.getElementById('addForm');
-    const tableBody = document.getElementById('studentsTable');
+    const groupsContainer = document.getElementById('groupsContainer');
     const adminPanel = document.getElementById('adminPanel');
-    const ADMIN_PASS = "qfvlu10178"; // ✅ كلمة السر
+    const ADMIN_PASS = "qfvlu10178";
     let isAdmin = false;
 
-    // إضافة اسم
+    // إضافة طالب
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const name = document.getElementById('name').value.trim();
@@ -219,25 +209,39 @@ db.ref("students").on("value", renderGroups);
       form.reset();
     });
 
-    // عرض البيانات
+    // عرض البطاقات
     db.ref("students").on("value", snapshot => {
-      tableBody.innerHTML = "";
+      groupsContainer.innerHTML = "";
       const data = snapshot.val() || {};
-      for (let g in data) {
-        for (let sg in data[g]) {
-          for (let id in data[g][sg]) {
-            const st = data[g][sg][id];
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${st.name}</td>
-              <td>${st.group}</td>
-              <td>${st.subgroup}</td>
-              ${isAdmin ? `<td><button class="delete-btn" onclick="deleteStudent('${g}','${sg}','${id}')">🗑 حذف</button></td>` : ""}
-            `;
-            tableBody.appendChild(row);
-          }
+
+      ["A1","A2","B1","B2"].forEach(g => {
+        for (let i = 1; i <= 5; i++) {
+          const sg = `Subgroup ${i}`;
+          const studentsObj = (data[g] && data[g][sg]) || {};
+          const students = Object.entries(studentsObj);
+          const count = students.length;
+
+          const card = document.createElement("div");
+          card.classList.add("group-card");
+          card.innerHTML = `
+            <div class="group-header">${g} - ${sg}</div>
+            <div class="group-count">${count}/10</div>
+            <ul class="students-list">
+              ${
+                count > 0 
+                ? students.map(([id, st]) => `
+                  <li>
+                    ${st.name}
+                    ${isAdmin ? `<button class="delete-btn" onclick="deleteStudent('${g}','${sg}','${id}')">🗑</button>` : ""}
+                  </li>
+                `).join("")
+                : `<div class="group-empty">لا يوجد طلاب بعد</div>`
+              }
+            </ul>
+          `;
+          groupsContainer.appendChild(card);
         }
-      }
+      });
     });
 
     // حذف طالب
@@ -248,39 +252,17 @@ db.ref("students").on("value", renderGroups);
     }
 
     // دخول الإدارة
-function checkAdmin() {
-  const pass = document.getElementById('adminPass').value;
-  if (pass === ADMIN_PASS) {
-    isAdmin = true;
-    adminPanel.style.display = "block";
-    document.getElementById("adminCol").style.display = "";
-    alert("✅ تم الدخول إلى وضع الإدارة");
-
-    // 🔹 إعادة تحميل البيانات لتظهر أزرار الحذف
-    db.ref('students').once('value', snapshot => {
-      tableBody.innerHTML = "";
-      const data = snapshot.val() || {};
-      for (let g in data) {
-        for (let sg in data[g]) {
-          for (let id in data[g][sg]) {
-            const st = data[g][sg][id];
-            const row = document.createElement("tr");
-            row.innerHTML = `
-              <td>${st.name}</td>
-              <td>${st.group}</td>
-              <td>${st.subgroup}</td>
-              ${isAdmin ? `<td><button class="delete-btn" onclick="deleteStudent('${g}','${sg}','${id}')">🗑 حذف</button></td>` : ""}
-            `;
-            tableBody.appendChild(row);
-          }
-        }
+    function checkAdmin() {
+      const pass = document.getElementById('adminPass').value;
+      if (pass === ADMIN_PASS) {
+        isAdmin = true;
+        adminPanel.style.display = "block";
+        alert("✅ تم الدخول إلى وضع الإدارة");
+        db.ref('students').once('value'); // تحديث العرض لإظهار أزرار الحذف
+      } else {
+        alert("❌ رمز غير صحيح");
       }
-    });
-
-  } else {
-    alert("❌ رمز غير صحيح");
-  }
-}
+    }
 
     // تصدير Excel
     function exportExcel() {
