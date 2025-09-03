@@ -121,27 +121,23 @@
       <button type="submit">➕ إضافة</button>
     </form>
 
-    // عرض البطاقات
+   <script>
 function renderGroups(snapshot) {
   const container = document.getElementById("groupsContainer");
   container.innerHTML = "";
-
   const data = snapshot.val() || {};
 
-  // نمشي على كل Group (A1, A2, B1, B2)
   for (let g in data) {
     for (let sg in data[g]) {
       const studentsObj = data[g][sg];
-      const students = Object.entries(studentsObj); // [ [id, {name,group,subgroup}], ... ]
+      const students = Object.entries(studentsObj); // [id, {name, group, subgroup}]
       const count = students.length;
 
       const card = document.createElement("div");
       card.classList.add("group-card");
 
-      // إذا العدد مكتمل 10 نغير اللون
-      const full = count >= 10 ? "style='color:red;'" : "";
+      const full = count >= 10 ? `style="color:red;font-weight:bold"` : "";
 
-      // محتوى الكارت
       card.innerHTML = `
         <div class="group-header">${g} - ${sg}</div>
         <div class="group-count" ${full}>${count}/10</div>
@@ -151,7 +147,8 @@ function renderGroups(snapshot) {
               <div>
                 ${s.name}
                 ${isAdmin ? `<button onclick="removeStudent('${g}','${sg}','${id}')">❌</button>` : ""}
-              </div>`).join("")
+              </div>
+            `).join("")
           : `<div class="group-empty">لا يوجد طلاب بعد</div>`
         }
       `;
@@ -161,8 +158,8 @@ function renderGroups(snapshot) {
   }
 }
 
-// تحديث تلقائي عند تغير البيانات
 db.ref("students").on("value", renderGroups);
+</script>
 
     <!-- دخول الإدارة -->
     <div style="margin-top:20px;">
@@ -325,6 +322,7 @@ function checkAdmin() {
   </script>
 </body>
 </html>
+
 
 
 
