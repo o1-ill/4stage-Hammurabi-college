@@ -384,10 +384,12 @@ showSuccessToast("تم التسجيل بنجاح ✅");
           const studentDiv=document.createElement("div");
           studentDiv.className="student";
           
-  if (lastAdded && lastAdded.group === g && lastAdded.subgroup === sg && lastAdded.id === id) {
-  studentDiv.classList.add("new");
-  setTimeout(() => studentDiv.classList.remove("new"), 2000);
-  lastAdded = null; // نفرغ المتغير بعد ما يخلص الأنيميشن
+ if (lastAdded && lastAdded.group === g && lastAdded.subgroup === sg && lastAdded.id === id) {
+  requestAnimationFrame(() => {
+    studentDiv.classList.add("new");
+    setTimeout(() => studentDiv.classList.remove("new"), 2000);
+  });
+  lastAdded = null;
 }
 
           studentDiv.innerHTML=`
@@ -566,6 +568,7 @@ if (st && (!st.pass || st.pass === inputPass)) {
 <div id="toastRoot" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
 
 
 
