@@ -260,19 +260,63 @@
   </header>
 
   <div class="container">
-    <table class="status-table">
+<!-- جدول المجموعات والبلوكات -->
+<table border="1" cellspacing="0" cellpadding="10" style="border-collapse: collapse; text-align: center; width: 100%; font-family: Arial, sans-serif; font-size: 16px; margin-bottom:20px;">
   <thead>
-    <tr>
+    <tr style="background-color:#cce5ff;">
       <th>Group</th>
-      <th>Subgroup</th>
-      <th>عدد الطلاب</th>
-      <th>الحالة</th>
+      <th>Subgroups</th>
+      <th>First Block</th>
+      <th>Second Block</th>
     </tr>
   </thead>
-  <tbody id="statusTableBody">
-    <!-- يتم ملؤه تلقائياً بالجافاسكربت -->
+  <tbody>
+    <tr>
+      <td rowspan="5" style="background-color:#cce5ff; font-weight:bold;">A₁</td>
+      <td>Subgroup 1</td>
+      <td rowspan="5">Surgery 1 Block</td>
+      <td rowspan="5">Medicine 1 Block</td>
+    </tr>
+    <tr><td>Subgroup 2</td></tr>
+    <tr><td>Subgroup 3</td></tr>
+    <tr><td>Subgroup 4</td></tr>
+    <tr><td>Subgroup 5</td></tr>
+
+    <tr>
+      <td rowspan="5" style="background-color:#cce5ff; font-weight:bold;">A₂</td>
+      <td>Subgroup 1</td>
+      <td rowspan="5">Medicine 1 Block</td>
+      <td rowspan="5">Surgery 1 Block</td>
+    </tr>
+    <tr><td>Subgroup 2</td></tr>
+    <tr><td>Subgroup 3</td></tr>
+    <tr><td>Subgroup 4</td></tr>
+    <tr><td>Subgroup 5</td></tr>
+
+    <tr>
+      <td rowspan="5" style="background-color:#cce5ff; font-weight:bold;">B₁</td>
+      <td>Subgroup 1</td>
+      <td rowspan="5">Surgery 2 Block</td>
+      <td rowspan="5">Medicine 2 Block</td>
+    </tr>
+    <tr><td>Subgroup 2</td></tr>
+    <tr><td>Subgroup 3</td></tr>
+    <tr><td>Subgroup 4</td></tr>
+    <tr><td>Subgroup 5</td></tr>
+
+    <tr>
+      <td rowspan="5" style="background-color:#cce5ff; font-weight:bold;">B₂</td>
+      <td>Subgroup 1</td>
+      <td rowspan="5">Medicine 2 Block</td>
+      <td rowspan="5">Surgery 2 Block</td>
+    </tr>
+    <tr><td>Subgroup 2</td></tr>
+    <tr><td>Subgroup 3</td></tr>
+    <tr><td>Subgroup 4</td></tr>
+    <tr><td>Subgroup 5</td></tr>
   </tbody>
 </table>
+
 
     <!-- form لإضافة اسم -->
     <form id="addForm">
@@ -648,6 +692,7 @@ if (st && (!st.pass || st.pass === inputPass)) {
 <div id="toastRoot" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
 
 
 
