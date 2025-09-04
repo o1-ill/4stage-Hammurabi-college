@@ -292,17 +292,15 @@
 
       if (!name) return;
 
-      const newRef = ref.push({ name, pass, group, subgroup });
-currentStudent = { group, subgroup, id: newRef.key };
+const ref = db.ref(`students/${group}/${subgroup}`);
+const snapshot = await ref.get();
+const data = snapshot.val() || {};
+const count = Object.keys(data).length;
 
-      const snapshot = await ref.get();
-      const data = snapshot.val() || {};
-      const count = Object.keys(data).length;
-
-      if (count >= 10) {
-        alert("❌ هذا الـ Subgroup مكتمل (10 طلاب)");
-        return;
-      }
+if (count >= 10) {
+  alert("❌ هذا الـ Subgroup مكتمل (10 طلاب)");
+  return;
+}
 
 const newRef = ref.push({ name, pass, group, subgroup });
 currentStudent = { group, subgroup, id: newRef.key };
@@ -486,6 +484,7 @@ db.ref("students").on("value", snapshot => {
   </footer>
 </body>
 </html>
+
 
 
 
