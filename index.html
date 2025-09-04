@@ -356,7 +356,7 @@ if (count >= 10) {
 }
 
 const newRef = ref.push({ name, pass, group, subgroup });
-currentStudent = { group, subgroup, id: newRef.key };
+lastAdded = { group, subgroup, id: newRef.key };
 form.reset();
 showSuccessToast("تم التسجيل بنجاح ✅");
 
@@ -384,9 +384,10 @@ showSuccessToast("تم التسجيل بنجاح ✅");
           const studentDiv=document.createElement("div");
           studentDiv.className="student";
           
-          if (currentStudent && currentStudent.group === g && currentStudent.subgroup === sg && currentStudent.id === id) {
+  if (lastAdded && lastAdded.group === g && lastAdded.subgroup === sg && lastAdded.id === id) {
   studentDiv.classList.add("new");
-  currentStudent = null; // عشان ما يظل يكرر اللمعة
+  setTimeout(() => studentDiv.classList.remove("new"), 2000);
+  lastAdded = null; // نفرغ المتغير بعد ما يخلص الأنيميشن
 }
 
           studentDiv.innerHTML=`
@@ -479,6 +480,7 @@ if (st && (!st.pass || st.pass === inputPass)) {
     // لوحة الإدارة
     const ADMIN_PASS = "qfvlu10178";
     let isAdmin = false;
+    let lastAdded = null;
 
     function checkAdmin() {
   const pass = document.getElementById("adminPass").value.trim();
@@ -557,13 +559,15 @@ if (st && (!st.pass || st.pass === inputPass)) {
 }
 
   </script>
-  </footer>   
-  <footer style="text-align:center; margin:20px 0; color:#9ca3af; font-size:13px; font-style:italic; font-weight:300;">
-    Developed by <b>Ahmed Rasool © 2025</b>
-      
-      <div id="toastRoot" aria-live="polite" aria-atomic="true"></div>
+ <footer style="text-align:center; margin:20px 0; color:#9ca3af; font-size:13px; font-style:italic; font-weight:300;">
+  Developed by <b>Ahmed Rasool © 2025</b>
+</footer>
+
+<div id="toastRoot" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
+
 
 
 
