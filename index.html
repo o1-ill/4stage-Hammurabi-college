@@ -26,6 +26,66 @@
       padding: 0;
       color: #1e293b;
     }
+   <table border="1" cellspacing="0" cellpadding="10" style="border-collapse: collapse; text-align: center; width: 100%; font-family: Arial, sans-serif; font-size: 16px;">
+  <thead>
+    <tr style="background-color: #cce0ff; font-weight: bold;">
+      <th>Group</th>
+      <th>Subgroups</th>
+      <th>First Block</th>
+      <th>Second Block</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- A1 -->
+    <tr>
+      <td rowspan="5" style="background-color: #cce0ff; font-weight: bold;">A<sub>1</sub></td>
+      <td>Subgroup 1</td>
+      <td rowspan="5">Surgery 1 Block</td>
+      <td rowspan="5">Medicine 1 Block</td>
+    </tr>
+    <tr><td>Subgroup 2</td></tr>
+    <tr><td>Subgroup 3</td></tr>
+    <tr><td>Subgroup 4</td></tr>
+    <tr><td>Subgroup 5</td></tr>
+
+    <!-- A2 -->
+    <tr>
+      <td rowspan="5" style="background-color: #cce0ff; font-weight: bold;">A<sub>2</sub></td>
+      <td>Subgroup 1</td>
+      <td rowspan="5">Medicine 1 Block</td>
+      <td rowspan="5">Surgery 1 Block</td>
+    </tr>
+    <tr><td>Subgroup 2</td></tr>
+    <tr><td>Subgroup 3</td></tr>
+    <tr><td>Subgroup 4</td></tr>
+    <tr><td>Subgroup 5</td></tr>
+
+    <!-- B1 -->
+    <tr>
+      <td rowspan="5" style="background-color: #cce0ff; font-weight: bold;">B<sub>1</sub></td>
+      <td>Subgroup 1</td>
+      <td rowspan="5">Surgery 2 Block</td>
+      <td rowspan="5">Medicine 2 Block</td>
+    </tr>
+    <tr><td>Subgroup 2</td></tr>
+    <tr><td>Subgroup 3</td></tr>
+    <tr><td>Subgroup 4</td></tr>
+    <tr><td>Subgroup 5</td></tr>
+
+    <!-- B2 -->
+    <tr>
+      <td rowspan="5" style="background-color: #cce0ff; font-weight: bold;">B<sub>2</sub></td>
+      <td>Subgroup 1</td>
+      <td rowspan="5">Medicine 2 Block</td>
+      <td rowspan="5">Surgery 2 Block</td>
+    </tr>
+    <tr><td>Subgroup 2</td></tr>
+    <tr><td>Subgroup 3</td></tr>
+    <tr><td>Subgroup 4</td></tr>
+    <tr><td>Subgroup 5</td></tr>
+  </tbody>
+</table>
+ 
     header {
       text-align: center;
       padding: 20px;
@@ -41,6 +101,29 @@
       border-radius: 14px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+    
+   .status-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  font-size: 15px;
+  text-align: center;
+}
+.status-table th, .status-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+}
+.status-table th {
+  background: #2563eb;
+  color: white;
+}
+.status-circle {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+}
+ 
     img {
       max-width: 100%;
       display: block;
@@ -232,11 +315,23 @@
 </head>
 <body>
   <header>
-    <h1>تقسيم طلاب المرحلة الرابعة كلية طب حمورابي</h1>
+    <h1>تقسيم طلاب المرحلة الرابعة</h1>
   </header>
 
   <div class="container">
-    <img src="table.png" alt="جدول تقسيم المجموعات">
+    <table class="status-table">
+  <thead>
+    <tr>
+      <th>Group</th>
+      <th>Subgroup</th>
+      <th>عدد الطلاب</th>
+      <th>الحالة</th>
+    </tr>
+  </thead>
+  <tbody id="statusTableBody">
+    <!-- يتم ملؤه تلقائياً بالجافاسكربت -->
+  </tbody>
+</table>
 
     <!-- form لإضافة اسم -->
     <form id="addForm">
@@ -430,13 +525,42 @@ showSuccessToast("تم التسجيل بنجاح ✅");
 
       groupsContainer.appendChild(card);
     }
+    function renderStatusTable(data) {
+  const tbody = document.getElementById("statusTableBody");
+  tbody.innerHTML = "";
+
+  ["A1","A2","B1","B2"].forEach(g=>{
+    for(let i=1;i<=5;i++){
+      const sg = `Subgroup ${i}`;
+      const students = data[g] && data[g][sg] ? Object.values(data[g][sg]) : [];
+      const count = students.length;
+
+      let color = "green"; // فارغ
+      if (count === 0) color = "green";
+      else if (count >= 10) color = "red";
+      else color = "yellow";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${g}</td>
+        <td>${sg}</td>
+        <td>${count}/10</td>
+        <td><span class="status-circle" style="background:${color};"></span></td>
+      `;
+      tbody.appendChild(tr);
+    }
+  });
+}
+
   });
 }
     // تحديث المجموعات مع أي تغيير بقاعدة البيانات
 db.ref("students").on("value", snapshot => {
   const data = snapshot.val() || {};
   renderGroups(data);
+  renderStatusTable(data); // تحديث الجدول
 });
+
 
     // فتح نافذة الرمز
     function openPasswordModal(group,subgroup,id){
@@ -583,6 +707,7 @@ if (st && (!st.pass || st.pass === inputPass)) {
 <div id="toastRoot" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
 
 
 
