@@ -64,6 +64,21 @@
   border-radius: 50%;
   display: inline-block;
 }
+    /* صف الـ subgroup داخل الجدول: الاسم + حالة مباشرة على اليمين */
+.sg-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.sg-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-weight:700;
+}
+/* إذا تريد تصغّر الدائرة شوي (اختياري) */
+/* .status-circle{ width:12px; height:12px; } */
+
  
     img {
       max-width: 100%;
@@ -260,63 +275,19 @@
   </header>
 
   <div class="container">
-<!-- جدول المجموعات والبلوكات -->
-<table border="1" cellspacing="0" cellpadding="10" style="border-collapse: collapse; text-align: center; width: 100%; font-family: Arial, sans-serif; font-size: 16px; margin-bottom:20px;">
+
+<!-- جدول المجموعات والبلوكات (ديناميكي مع الحالة) -->
+<table class="status-table">
   <thead>
-    <tr style="background-color:#cce5ff;">
+    <tr>
       <th>Group</th>
       <th>Subgroups</th>
       <th>First Block</th>
       <th>Second Block</th>
     </tr>
   </thead>
-  <tbody>
-    <tr>
-      <td rowspan="5" style="background-color:#cce5ff; font-weight:bold;">A₁</td>
-      <td>Subgroup 1</td>
-      <td rowspan="5">Surgery 1 Block</td>
-      <td rowspan="5">Medicine 1 Block</td>
-    </tr>
-    <tr><td>Subgroup 2</td></tr>
-    <tr><td>Subgroup 3</td></tr>
-    <tr><td>Subgroup 4</td></tr>
-    <tr><td>Subgroup 5</td></tr>
-
-    <tr>
-      <td rowspan="5" style="background-color:#cce5ff; font-weight:bold;">A₂</td>
-      <td>Subgroup 1</td>
-      <td rowspan="5">Medicine 1 Block</td>
-      <td rowspan="5">Surgery 1 Block</td>
-    </tr>
-    <tr><td>Subgroup 2</td></tr>
-    <tr><td>Subgroup 3</td></tr>
-    <tr><td>Subgroup 4</td></tr>
-    <tr><td>Subgroup 5</td></tr>
-
-    <tr>
-      <td rowspan="5" style="background-color:#cce5ff; font-weight:bold;">B₁</td>
-      <td>Subgroup 1</td>
-      <td rowspan="5">Surgery 2 Block</td>
-      <td rowspan="5">Medicine 2 Block</td>
-    </tr>
-    <tr><td>Subgroup 2</td></tr>
-    <tr><td>Subgroup 3</td></tr>
-    <tr><td>Subgroup 4</td></tr>
-    <tr><td>Subgroup 5</td></tr>
-
-    <tr>
-      <td rowspan="5" style="background-color:#cce5ff; font-weight:bold;">B₂</td>
-      <td>Subgroup 1</td>
-      <td rowspan="5">Medicine 2 Block</td>
-      <td rowspan="5">Surgery 2 Block</td>
-    </tr>
-    <tr><td>Subgroup 2</td></tr>
-    <tr><td>Subgroup 3</td></tr>
-    <tr><td>Subgroup 4</td></tr>
-    <tr><td>Subgroup 5</td></tr>
-  </tbody>
+  <tbody id="scheduleBody"></tbody>
 </table>
-
 
     <!-- form لإضافة اسم -->
     <form id="addForm">
@@ -510,30 +481,70 @@ showSuccessToast("تم التسجيل بنجاح ✅");
 
       groupsContainer.appendChild(card);
     }
-    function renderStatusTable(data) {
-  const tbody = document.getElementById("statusTableBody");
-  tbody.innerHTML = "";
+// الكتل لكل Group
+const GROUP_BLOCKS = {
+  A1: { first: 'Surgery 1 Block',  second: 'Medicine 1 Block'  },
+  A2: { first: 'Medicine 1 Block', second: 'Surgery 1 Block'   },
+  B1: { first: 'Surgery 2 Block',  second: 'Medicine 2 Block'  },
+  B2: { first: 'Medicine 2 Block', second: 'Surgery 2 Block'   },
+};
 
-  ["A1","A2","B1","B2"].forEach(g=>{
-    for(let i=1;i<=5;i++){
+// تحويل A1 -> A₁ (بس للشكل)
+function prettyGroupLabel(g){
+  return g.replace('1','₁').replace('2','₂');
+}
+
+// يبني صفوف الجدول + الحالة الدائرية والعداد
+function renderSchedule(data){
+  const tbody = document.getElementById('scheduleBody');
+  if(!tbody) return;
+
+  let html = '';
+
+  Object.keys(GROUP_BLOCKS).forEach(g=>{
+    const {first, second} = GROUP_BLOCKS[g];
+
+    for(let i=1; i<=5; i++){
       const sg = `Subgroup ${i}`;
-      const students = data[g] && data[g][sg] ? Object.values(data[g][sg]) : [];
-      const count = students.length;
+      const count = (data[g] && data[g][sg]) ? Object.keys(data[g][sg]).length : 0;
 
-      let color = "green"; // فارغ
-      if (count === 0) color = "green";
-      else if (count >= 10) color = "red";
-      else color = "yellow";
+      // ألوان الحالة: أخضر = فارغ، أصفر = غير ممتلئ، أحمر = ممتلئ
+      const color =
+        count === 0  ? 'green' :
+        count >= 10  ? 'red'   :
+                       'gold';
 
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${g}</td>
-        <td>${sg}</td>
-        <td>${count}/10</td>
-        <td><span class="status-circle" style="background:${color};"></span></td>
+      html += `<tr>`;
+
+      // عمود Group (مرة وحدة لكل 5 صفوف)
+      if(i === 1){
+        html += `<td rowspan="5" style="background:#cce5ff;font-weight:bold;">${prettyGroupLabel(g)}</td>`;
+      }
+
+      // عمود Subgroup + الحالة والعداد
+      html += `
+        <td>
+          <div class="sg-row">
+            <span>${sg}</span>
+            <span class="sg-status">
+              <span class="status-circle" style="background:${color}"></span>
+              <span>${count}/10</span>
+            </span>
+          </div>
+        </td>
       `;
-      tbody.appendChild(tr);
+
+      // أعمدة البلوكات (مرة وحدة لكل 5 صفوف)
+      if(i === 1){
+        html += `<td rowspan="5">${first}</td><td rowspan="5">${second}</td>`;
+      }
+
+      html += `</tr>`;
     }
+  });
+
+  tbody.innerHTML = html;
+}
   });
 }
 
@@ -542,9 +553,10 @@ showSuccessToast("تم التسجيل بنجاح ✅");
     // تحديث المجموعات مع أي تغيير بقاعدة البيانات
 db.ref("students").on("value", snapshot => {
   const data = snapshot.val() || {};
-  renderGroups(data);
-  renderStatusTable(data); // تحديث الجدول
+  renderGroups(data);   // بطاقات المجموعات والطلاب
+  renderSchedule(data); // الجدول العلوي مع الدوائر والعداد
 });
+
 
 
     // فتح نافذة الرمز
@@ -692,6 +704,7 @@ if (st && (!st.pass || st.pass === inputPass)) {
 <div id="toastRoot" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
 
 
 
