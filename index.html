@@ -64,29 +64,36 @@
   border-radius: 50%;
   display: inline-block;
 }
-    /* صف الـ subgroup داخل الجدول: الاسم + حالة مباشرة على اليمين */
-.sg-row{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+ /* تنسيق صف الـ Subgroup */
+.sg-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
-.sg-status{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
-  font-weight:700;
-}
-/* إذا تريد تصغّر الدائرة شوي (اختياري) */
-/* .status-circle{ width:12px; height:12px; } */
 
- 
-    img {
-      max-width: 100%;
-      display: block;
-      margin: 15px auto;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
+/* تنسيق حالة الـ subgroup (الدائرة + الرقم) */
+.sg-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+/* الدائرة الملونة */
+.status-circle {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #e9ecef inset;
+}
+
+/* شكل خلايا الجدول */
+.schedule td {
+  border: 1px solid #eef2f7;
+  padding: 10px;
+}
+    
     form {
       display: flex;
       flex-direction: column;
@@ -277,17 +284,22 @@
   <div class="container">
 
 <!-- جدول المجموعات والبلوكات (ديناميكي مع الحالة) -->
-<table class="status-table">
-  <thead>
-    <tr>
-      <th>Group</th>
-      <th>Subgroups</th>
-      <th>First Block</th>
-      <th>Second Block</th>
-    </tr>
-  </thead>
-  <tbody id="scheduleBody"></tbody>
-</table>
+<<!-- ===== جدول البلوكات (فوق الفورم) ===== -->
+<div class="table-wrap" style="margin-bottom:22px;">
+  <table class="schedule" style="width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden;">
+    <thead>
+      <tr style="background:#e7f1ff; text-align:center;">
+        <th style="padding:12px; border:1px solid #d7e3f7;">Group</th>
+        <th style="padding:12px; border:1px solid #d7e3f7;">Subgroups</th>
+        <th style="padding:12px; border:1px solid #d7e3f7;">First Block</th>
+        <th style="padding:12px; border:1px solid #d7e3f7;">Second Block</th>
+      </tr>
+    </thead>
+    <tbody id="scheduleBody"></tbody>
+  </table>
+</div>
+<!-- ===== نهاية الجدول ===== -->
+
 
     <!-- form لإضافة اسم -->
     <form id="addForm">
@@ -426,6 +438,72 @@ lastAdded = { group, subgroup, id: newRef.key };
 form.reset();
 showSuccessToast("تم التسجيل بنجاح ✅");
 
+      // تعريف البلوكات لكل Group
+const GROUP_BLOCKS = {
+  A1: { first: 'Surgery 1 Block',  second: 'Medicine 1 Block'  },
+  A2: { first: 'Medicine 1 Block', second: 'Surgery 1 Block'   },
+  B1: { first: 'Surgery 2 Block',  second: 'Medicine 2 Block'  },
+  B2: { first: 'Medicine 2 Block', second: 'Surgery 2 Block'   },
+};
+
+// شكل كتابي ألطف (A1 → A₁)
+function prettyGroupLabel(g){
+  return g.replace('1','₁').replace('2','₂');
+}
+
+// رسم الجدول مع الدوائر والعداد
+function renderSchedule(data){
+  const tbody = document.getElementById('scheduleBody');
+  if(!tbody) return;
+
+  let html = '';
+
+  Object.keys(GROUP_BLOCKS).forEach(g=>{
+    const {first, second} = GROUP_BLOCKS[g];
+
+    for(let i=1; i<=5; i++){
+      const sg = `Subgroup ${i}`;
+      const count = (data[g] && data[g][sg]) ? Object.keys(data[g][sg]).length : 0;
+
+      // ألوان الحالة
+      const color =
+        count === 0  ? 'green' :
+        count >= 10  ? 'red'   :
+                       'gold';
+
+      html += `<tr>`;
+
+      // عمود Group (مرة وحدة لكل 5 صفوف)
+      if(i === 1){
+        html += `<td rowspan="5" style="background:#eaf4ff; font-weight:700; text-align:center;">${prettyGroupLabel(g)}</td>`;
+      }
+
+      // عمود Subgroup + الحالة والعداد
+      html += `
+        <td>
+          <div class="sg-row">
+            <span>${sg}</span>
+            <span class="sg-status">
+              <span class="status-circle" style="background:${color}"></span>
+              <span>${count}/10</span>
+            </span>
+          </div>
+        </td>
+      `;
+
+      // أعمدة البلوكات (مرة وحدة لكل 5 صفوف)
+      if(i === 1){
+        html += `<td rowspan="5" style="text-align:center;">${first}</td>`;
+        html += `<td rowspan="5" style="text-align:center;">${second}</td>`;
+      }
+
+      html += `</tr>`;
+    }
+  });
+
+  tbody.innerHTML = html;
+}
+
     });
 
     // عرض المجموعات
@@ -553,11 +631,9 @@ function renderSchedule(data){
     // تحديث المجموعات مع أي تغيير بقاعدة البيانات
 db.ref("students").on("value", snapshot => {
   const data = snapshot.val() || {};
-  renderGroups(data);   // بطاقات المجموعات والطلاب
-  renderSchedule(data); // الجدول العلوي مع الدوائر والعداد
+  renderGroups(data);   // الكروت (اللي بالأسفل)
+  renderSchedule(data); // الجدول (اللي فوق الفورم)
 });
-
-
 
     // فتح نافذة الرمز
     function openPasswordModal(group,subgroup,id){
@@ -704,6 +780,7 @@ if (st && (!st.pass || st.pass === inputPass)) {
 <div id="toastRoot" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
 
 
 
