@@ -161,6 +161,57 @@
 .student.new {
   animation: highlight 2s ease-out;
 }
+/* ===== 3D Success Toast ===== */
+#toastRoot {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.toast-3d {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 14px;
+  box-shadow:
+    0 10px 25px rgba(22, 163, 74, 0.45),
+    inset 0 1px 0 rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,.15);
+  backdrop-filter: blur(2px);
+  transform-origin: top center;
+  transform: perspective(800px) rotateX(-15deg) translateY(-20px) scale(.9);
+  opacity: 0;
+  animation: toastIn .7s cubic-bezier(.2,.8,.2,1) forwards,
+             glow 1.8s ease-out 0.2s;
+  font-weight: 700;
+}
+
+.toast-3d .icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 20px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+}
+
+@keyframes toastIn {
+  0%   { opacity: 0; transform: perspective(800px) rotateX(-15deg) translateY(-20px) scale(.9); }
+  60%  { opacity: 1; transform: perspective(800px) rotateX(0deg) translateY(0) scale(1.02); }
+  100% { opacity: 1; transform: perspective(800px) rotateX(0deg) translateY(0) scale(1); }
+}
+@keyframes toastOut {
+  to { opacity: 0; transform: perspective(800px) rotateX(10deg) translateY(-10px) scale(.97); }
+}
+@keyframes glow {
+  0%   { box-shadow: 0 0 0 rgba(34,197,94,0); }
+  50%  { box-shadow: 0 0 25px rgba(34,197,94,.45); }
+  100% { box-shadow: 0 0 0 rgba(34,197,94,0); }
+}
 
   </style>
 </head>
@@ -306,6 +357,8 @@ if (count >= 10) {
 
 const newRef = ref.push({ name, pass, group, subgroup });
 currentStudent = { group, subgroup, id: newRef.key };
+form.reset();
+showSuccessToast("تم التسجيل بنجاح ✅");
 
     });
 
@@ -480,13 +533,38 @@ if (st && (!st.pass || st.pass === inputPass)) {
         });
       };
       reader.readAsArrayBuffer(file);
+      
     }
+    function showSuccessToast(message = "تم التسجيل بنجاح") {
+  const root = document.getElementById('toastRoot');
+  if (!root) return;
+
+  root.innerHTML = ""; // مسح أي توست سابق
+  const toast = document.createElement('div');
+  toast.className = 'toast-3d';
+  toast.innerHTML = `
+    <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white">
+      <path d="M12 2a10 10 0 1010 10A10.011 10.011 0 0012 2zm-1 15l-5-5 1.41-1.41L11 13.17l5.59-5.59L18 9z"/>
+    </svg>
+    <span>${message}</span>
+  `;
+  root.appendChild(toast);
+
+  setTimeout(() => {
+    toast.style.animation = `${toast.style.animation}, toastOut .4s ease forwards`;
+    setTimeout(() => toast.remove(), 400);
+  }, 2200);
+}
+
   </script>
-    <footer style="text-align:center; margin:20px 0; color:#9ca3af; font-size:13px; font-style:italic; font-weight:300;">
+  </footer>   
+  <footer style="text-align:center; margin:20px 0; color:#9ca3af; font-size:13px; font-style:italic; font-weight:300;">
     Developed by <b>Ahmed Rasool © 2025</b>
-  </footer>
+      
+      <div id="toastRoot" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
+
 
 
 
