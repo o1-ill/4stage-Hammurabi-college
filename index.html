@@ -286,7 +286,9 @@
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("name").value.trim();
-      const pass = document.getElementById('studentPass').value.trim() || null;
+      let pass = document.getElementById('studentPass').value.trim();
+if (pass === "") pass = null;
+
       const group = document.getElementById("group").value;
       const subgroup = document.getElementById("subgroup").value;
 
@@ -378,12 +380,13 @@ db.ref("students").on("value", snapshot => {
       const {group,subgroup,id}=currentStudent;
       db.ref(`students/${group}/${subgroup}/${id}`).once("value").then(snap=>{
         const st=snap.val();
-       if(st && (!st.pass || st.pass === inputPass)){
+if (st && (!st.pass || st.pass === inputPass)) {
   closeModal("passwordModal");
   openModal("actionModal");
 } else {
   alert("❌ رمز غير صحيح");
 }
+
       });
     }
 
@@ -484,6 +487,7 @@ db.ref("students").on("value", snapshot => {
   </footer>
 </body>
 </html>
+
 
 
 
